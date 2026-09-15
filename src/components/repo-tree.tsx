@@ -46,6 +46,19 @@ export function RepoTree({
 			),
 		[items],
 	);
+	const filesByFolder = React.useMemo(() => {
+		const folders = new Map<string, string[]>();
+		for (const path of files) {
+			const parts = path.split("/");
+			for (let depth = 1; depth < parts.length; depth += 1) {
+				const folder = parts.slice(0, depth).join("/");
+				const children = folders.get(folder);
+				if (children) children.push(path);
+				else folders.set(folder, [path]);
+			}
+		}
+		return folders;
+	}, [files]);
 	const paths = React.useMemo(
 		() =>
 			items.map((item) => (item.type === "dir" ? `${item.path}/` : item.path)),
@@ -54,11 +67,30 @@ export function RepoTree({
 	const navigateToSelection = React.useCallback(
 		(selectedPaths: readonly string[]) => {
 			const selected = selectedPaths.at(-1);
-			if (!selected || !files.has(selected) || selected === activePath) return;
+			if (!selected) return;
+			if (!files.has(selected)) {
+				for (const child of filesByFolder.get(selected) ?? []) {
+					onPrefetchPath?.(child);
+				}
+				return;
+			}
+			if (selected === activePath) return;
 			onPrefetchPath?.(selected);
-			router.push(buildHref(owner, repo, "blob", refName, selected, shareId));
+			router.push(buildHref(owner, repo, "blob", refName, selected, shareId), {
+				scroll: false,
+			});
 		},
-		[activePath, files, onPrefetchPath, owner, refName, repo, router, shareId],
+		[
+			activePath,
+			files,
+			filesByFolder,
+			onPrefetchPath,
+			owner,
+			refName,
+			repo,
+			router,
+			shareId,
+		],
 	);
 	const prefetchHoveredFile = React.useCallback(
 		(event: React.PointerEvent<HTMLElement>) => {

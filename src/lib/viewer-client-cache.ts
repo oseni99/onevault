@@ -19,8 +19,8 @@ export class ViewerRequestError extends Error {
 	}
 }
 
-const MAX_ENTRIES = 64;
-const CACHE_TTL_MS = 60_000;
+const MAX_ENTRIES = 256;
+const CACHE_TTL_MS = 300_000;
 
 interface CacheEntry {
 	expiresAt: number;

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import * as React from "react";
 import { BranchSwitcher } from "@/components/branch-switcher";
-import { PierreFile } from "@/components/pierre-file";
+import { PierreFile, preloadPierreFile } from "@/components/pierre-file";
 import { ReleasesList } from "@/components/releases-list";
 import { RepoTree } from "@/components/repo-tree";
 import { SidebarTree } from "@/components/sidebar-tree";
@@ -15,7 +15,6 @@ import { buildHref, buildReleasesHref } from "@/lib/repo-path";
 import {
 	getViewerRepositoryContext,
 	loadViewerRequest,
-	prefetchViewerPath,
 	rememberViewerRepositoryContext,
 	type ViewerRequest,
 	ViewerRequestError,
@@ -238,12 +237,16 @@ function FileOrDirView({
 		});
 
 	// A markdown file with both renderings gets Preview/Code tabs, preview
-	// first. The component is keyed by path at the call site, so the tab
-	// resets to Preview on every navigation.
+	// first. Tie the tab choice to its path so a new file resets just this state
+	// without remounting the entire viewer shell.
 	const hasCode =
 		contents.kind === "file" && !contents.isBinary && contents.text !== null;
 	const hasMdTabs = Boolean(mdHtml && hasCode);
-	const [mdTab, setMdTab] = React.useState<"preview" | "code">("preview");
+	const [mdTabState, setMdTabState] = React.useState<{
+		path: string;
+		tab: "preview" | "code";
+	}>({ path, tab: "preview" });
+	const mdTab = mdTabState.path === path ? mdTabState.tab : "preview";
 	const showPreview = Boolean(mdHtml) && (!hasMdTabs || mdTab === "preview");
 
 	return (
@@ -389,7 +392,7 @@ function FileOrDirView({
 											role="tab"
 											className="filebar__tab"
 											aria-selected={mdTab === "preview"}
-											onClick={() => setMdTab("preview")}
+											onClick={() => setMdTabState({ path, tab: "preview" })}
 										>
 											Preview
 										</button>
@@ -398,7 +401,7 @@ function FileOrDirView({
 											role="tab"
 											className="filebar__tab"
 											aria-selected={mdTab === "code"}
-											onClick={() => setMdTab("code")}
+											onClick={() => setMdTabState({ path, tab: "code" })}
 										>
 											Code
 										</button>
@@ -443,6 +446,19 @@ type FetchState =
 	| { status: "blocked" }
 	| { status: "error" }
 	| { status: "ready"; payload: ViewerPayload };
+
+async function preloadPayloadHighlighter(
+	payload: ViewerPayload | ViewerPathPayload,
+): Promise<void> {
+	if (
+		(payload.kind === "view" || payload.kind === "path") &&
+		payload.contents.kind === "file" &&
+		!payload.contents.isBinary &&
+		payload.contents.text !== null
+	) {
+		await preloadPierreFile(payload.contents.name);
+	}
+}
 
 function pathRequestFor(
 	slug: string[],
@@ -536,6 +552,8 @@ export function ViewerContent({
 					},
 				);
 				if (cancelled) return;
+				await preloadPayloadHighlighter(payload);
+				if (cancelled) return;
 
 				if (payload.kind === "redirect") {
 					router.replace(payload.href);
@@ -609,24 +627,20 @@ export function ViewerContent({
 	if (payload.kind === "releases") {
 		return <ReleasesView payload={payload} />;
 	}
-	// Keyed by ref+path so per-file state (the markdown Preview/Code tab)
-	// resets on every navigation instead of leaking to the next file.
 	const onPrefetchPath = (path: string) => {
 		if (!path || payload.fullTree === null) return;
-		prefetchViewerPath({
+		void loadViewerRequest({
 			operation: "path",
 			shareId: payload.shareId,
 			owner: payload.owner,
 			repo: payload.repo,
 			ref: payload.refName,
 			path,
-		});
+		})
+			.then(preloadPayloadHighlighter)
+			.catch(() => {
+				// Prefetch is opportunistic; navigation will retry a failed request.
+			});
 	};
-	return (
-		<FileOrDirView
-			key={`${payload.refName}:${payload.path}`}
-			payload={payload}
-			onPrefetchPath={onPrefetchPath}
-		/>
-	);
+	return <FileOrDirView payload={payload} onPrefetchPath={onPrefetchPath} />;
 }

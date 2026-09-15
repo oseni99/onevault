@@ -1,8 +1,20 @@
 "use client";
 
+import {
+	DEFAULT_THEMES,
+	getFiletypeFromFileName,
+	preloadHighlighter,
+} from "@pierre/diffs";
 import { File } from "@pierre/diffs/react";
 import * as React from "react";
 import { useDocumentTheme } from "@/components/use-document-theme";
+
+export function preloadPierreFile(name: string): Promise<void> {
+	return preloadHighlighter({
+		themes: [DEFAULT_THEMES.light, DEFAULT_THEMES.dark],
+		langs: [getFiletypeFromFileName(name)],
+	});
+}
 
 export function PierreFile({
 	name,

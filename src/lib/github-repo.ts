@@ -1,7 +1,7 @@
 import type { Octokit } from "octokit";
 import { createAsyncTtlCache } from "@/lib/async-ttl-cache";
 
-const REPOSITORY_CONTEXT_TTL_MS = 60_000;
+const REPOSITORY_CONTEXT_TTL_MS = 300_000;
 const repoMetaCache = createAsyncTtlCache<RepoMeta>({
 	ttlMs: REPOSITORY_CONTEXT_TTL_MS,
 });
@@ -11,7 +11,7 @@ const repoTreeCache = createAsyncTtlCache<{
 } | null>({ ttlMs: REPOSITORY_CONTEXT_TTL_MS });
 const repoContentsCache = createAsyncTtlCache<Contents>({
 	ttlMs: REPOSITORY_CONTEXT_TTL_MS,
-	maxEntries: 32,
+	maxEntries: 256,
 });
 
 // Read helpers, all called server-side with an installation Octokit.

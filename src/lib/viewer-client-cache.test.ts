@@ -76,7 +76,10 @@ describe("viewer client cache", () => {
 		rememberViewerRepositoryContext(payload);
 		expect(getViewerRepositoryContext("share-1")).toBe(payload);
 
-		vi.advanceTimersByTime(60_001);
+		vi.advanceTimersByTime(120_001);
+		expect(getViewerRepositoryContext("share-1")).toBe(payload);
+
+		vi.advanceTimersByTime(180_000);
 		expect(getViewerRepositoryContext("share-1")).toBeNull();
 	});
 });
