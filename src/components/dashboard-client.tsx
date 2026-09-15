@@ -5,6 +5,7 @@ import * as React from "react";
 import { NavLinks } from "@/components/nav-links";
 import { SiteDrawer } from "@/components/site-drawer";
 import { SiteFooter } from "@/components/site-footer";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 interface Repo {
 	installationId: number;
@@ -318,10 +319,10 @@ export function DashboardClient({
 	return (
 		<div className="page-shell">
 			<header className="topbar">
-				<a className="wordmark" href="/" aria-label="github unlisted home">
+				<a className="wordmark" href="/" aria-label="SourceVault home">
 					<span className="mark" aria-hidden="true">
 						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<title>unlisted</title>
+							<title>SourceVault</title>
 							<line
 								x1="2"
 								y1="11"
@@ -354,18 +355,20 @@ export function DashboardClient({
 						</svg>
 					</span>
 					<span className="word">
-						<span className="pre">github</span>{" "}
-						<span className="post">unlisted</span>
+						<span className="pre">source</span>
+						<span className="post">vault</span>
 					</span>
 				</a>
 
 				<NavLinks signedIn={true} active="dashboard" />
 
-				<a className="nav-cta" href="/api/github/logout">
-					Sign Out
-				</a>
-
-				<SiteDrawer signedIn={true} active="dashboard" />
+				<div className="topbar-actions">
+					<ThemeToggle />
+					<a className="nav-cta" href="/api/github/logout">
+						Sign Out
+					</a>
+					<SiteDrawer signedIn={true} active="dashboard" />
+				</div>
 			</header>
 
 			<main className="dashboard">

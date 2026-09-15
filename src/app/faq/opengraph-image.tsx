@@ -1,7 +1,7 @@
 import { ogImage } from "@/lib/og";
 
 export { contentType, size } from "@/lib/og";
-export const alt = "FAQ — Unlisted Repo";
+export const alt = "FAQ — SourceVault";
 
 export default function Image() {
 	return ogImage(

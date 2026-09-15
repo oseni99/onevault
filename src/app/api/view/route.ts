@@ -1,6 +1,11 @@
 import { checkBotId } from "botid/server";
 import { NextResponse } from "next/server";
-import { resolveViewer, type ViewerPayload } from "@/lib/viewer-data";
+import {
+	resolveViewer,
+	resolveViewerPath,
+	type ViewerPathPayload,
+	type ViewerPayload,
+} from "@/lib/viewer-data";
 
 // The viewer's data lives behind this endpoint precisely so bots can be turned
 // away here. It exposes private-repo contents, so it must never be cached.
@@ -28,11 +33,43 @@ export async function POST(request: Request): Promise<NextResponse> {
 		);
 	}
 
-	const record = (body ?? {}) as { slug?: unknown; shareId?: unknown };
+	const record = (body ?? {}) as {
+		operation?: unknown;
+		slug?: unknown;
+		shareId?: unknown;
+		owner?: unknown;
+		repo?: unknown;
+		ref?: unknown;
+		path?: unknown;
+	};
+	const shareId = typeof record.shareId === "string" ? record.shareId : "";
+	if (record.operation === "path") {
+		const stringValue = (value: unknown) =>
+			typeof value === "string" ? value : "";
+		try {
+			const payload = await resolveViewerPath({
+				shareId,
+				owner: stringValue(record.owner),
+				repo: stringValue(record.repo),
+				ref: stringValue(record.ref),
+				path: stringValue(record.path),
+			});
+			return NextResponse.json(payload);
+		} catch (err) {
+			console.error("view path resolve failed", err);
+			return NextResponse.json(
+				{
+					kind: "notice",
+					title: "Something went wrong",
+					detail: "This file could not be loaded. Please try again.",
+				} satisfies ViewerPathPayload,
+				{ status: 500 },
+			);
+		}
+	}
 	const slug = Array.isArray(record.slug)
 		? record.slug.filter((s): s is string => typeof s === "string")
 		: [];
-	const shareId = typeof record.shareId === "string" ? record.shareId : "";
 
 	try {
 		const payload = await resolveViewer(slug, shareId);

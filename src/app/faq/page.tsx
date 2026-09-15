@@ -22,10 +22,10 @@ export default async function FaqPage() {
 	return (
 		<div className="page-shell">
 			<header className="topbar">
-				<a className="wordmark" href="/" aria-label="github unlisted home">
+				<a className="wordmark" href="/" aria-label="SourceVault home">
 					<span className="mark" aria-hidden="true">
 						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<title>unlisted</title>
+							<title>SourceVault</title>
 							<line
 								x1="2"
 								y1="11"
@@ -58,8 +58,8 @@ export default async function FaqPage() {
 						</svg>
 					</span>
 					<span className="word">
-						<span className="pre">github</span>{" "}
-						<span className="post">unlisted</span>
+						<span className="pre">source</span>
+						<span className="post">vault</span>
 					</span>
 				</a>
 
@@ -80,10 +80,7 @@ export default async function FaqPage() {
 
 			<main className="faq-content">
 				<div className="faq-content__inner">
-
-					<h1 className="faq-title">
-						Questions?
-					</h1>
+					<h1 className="faq-title">Questions?</h1>
 
 					<p className="faq-lede">
 						A short list. If you have something else on your mind, the source is

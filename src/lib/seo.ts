@@ -5,16 +5,21 @@ import type { Metadata } from "next";
 // manifest and JSON-LD all derive from this.
 
 export const SITE = {
-	url: "https://www.github-unlisted.com",
-	name: "Unlisted Repo",
+	url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+	name: "SourceVault",
 	// The root layout adds this suffix; pages pass the BARE title.
-	titleTemplate: "%s — Unlisted Repo",
-	defaultTitle: "Unlisted Repo — share a private GitHub repo by link",
+	titleTemplate: "%s — SourceVault",
+	defaultTitle: "SourceVault — private code, shared on your terms",
 	description:
 		"Share a private GitHub repository as a read-only browsable link. No collaborator invites, no GitHub account needed for the recipient — you keep full control through GitHub.",
 	locale: "en_US",
-	author: { name: "Rév", url: "https://www.revoconner.com" },
-	repo: "https://github.com/revoconner/github-unlisted",
+	author: {
+		name: process.env.NEXT_PUBLIC_SITE_OWNER ?? "SourceVault",
+		url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
+	},
+	repo:
+		process.env.NEXT_PUBLIC_SOURCE_REPO_URL ??
+		"https://github.com/revoconner/github-unlisted",
 } as const;
 
 export function absoluteUrl(path = "/"): string {

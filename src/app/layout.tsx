@@ -1,6 +1,5 @@
 import { Analytics } from "@vercel/analytics/next";
 import type { Metadata, Viewport } from "next";
-import { Geist_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { JsonLd } from "@/components/json-ld";
 import { SITE, siteGraphLd } from "@/lib/seo";
@@ -13,14 +12,14 @@ import { SITE, siteGraphLd } from "@/lib/seo";
 // gsans is a variable font; the full 100-900 weight range is available,
 // so weights are picked freely in CSS. It replaces both the old sans
 // (Geist) and serif (Instrument Serif); --font-serif aliases --font-sans
-// in global.css. Mono stays Geist Mono.
+// in global.css. Mono uses the system stack so production builds do not depend
+// on downloading a Google-hosted font.
 const sans = localFont({
 	src: "../fonts/gsans.ttf",
 	variable: "--font-sans",
 	weight: "100 900",
 	display: "swap",
 });
-const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE.url),
@@ -59,9 +58,14 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
 	width: "device-width",
 	initialScale: 1,
-	colorScheme: "dark",
-	themeColor: "#0a0b0e",
+	colorScheme: "light dark",
+	themeColor: [
+		{ media: "(prefers-color-scheme: light)", color: "#ffffff" },
+		{ media: "(prefers-color-scheme: dark)", color: "#0d1117" },
+	],
 };
+
+const themeBoot = `(()=>{try{const s=localStorage.getItem("sourcevault:theme");const t=s==="light"||s==="dark"?s:matchMedia("(prefers-color-scheme:light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch{document.documentElement.dataset.theme="dark"}})()`;
 
 export default function RootLayout({
 	children,
@@ -69,7 +73,11 @@ export default function RootLayout({
 	children: React.ReactNode;
 }) {
 	return (
-		<html lang="en" className={`${sans.variable} ${mono.variable}`}>
+		<html lang="en" className={sans.variable} suppressHydrationWarning>
+			<head>
+				{/* biome-ignore lint/security/noDangerouslySetInnerHtml: static inline bootstrap prevents a theme flash before React hydrates */}
+				<script dangerouslySetInnerHTML={{ __html: themeBoot }} />
+			</head>
 			<body>
 				{children}
 				<JsonLd data={siteGraphLd()} />

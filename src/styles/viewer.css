@@ -81,14 +81,18 @@ body {
 	font-family:
 		"gsans", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui,
 		sans-serif;
-	background: hsl(212, 18.5%, 15.9%);
-	color: hsl(210, 30%, 92%);
+	background: #0d1117;
+	color: #e6edf3;
 	-webkit-font-smoothing: antialiased;
 	text-rendering: optimizeLegibility;
 	letter-spacing: -0.005em;
 	font-feature-settings: "ss01", "cv11";
 	position: relative;
 	overflow-x: hidden;
+}
+:root[data-theme="light"] body {
+	background: #ffffff;
+	color: #1f2328;
 }
 a {
 	color: inherit;
@@ -141,18 +145,18 @@ body[data-viewer-tree="open"] {
    nothing else loads this file, but nothing here should ever leak. */
 .viewer-shell {
 	/* The canvas the recipient sees, and the ramp around it. */
-	--gh-canvas: hsl(212, 18.5%, 15.9%);
-	--gh-inset: hsl(212, 20%, 12.5%);
-	--gh-raised: hsl(212, 16%, 19%);
-	--gh-raised-hover: hsl(212, 15%, 23%);
+	--gh-canvas: #0d1117;
+	--gh-inset: #010409;
+	--gh-raised: #161b22;
+	--gh-raised-hover: #21262d;
 	/* Deliberately light. On a canvas this dark a timid border disappears,
 	   and the border is doing the structural work here. */
-	--gh-border: hsl(212, 11%, 32%);
-	--gh-border-muted: hsl(212, 12%, 25%);
+	--gh-border: #30363d;
+	--gh-border-muted: #21262d;
 
-	--gh-fg: hsl(210, 30%, 92%);
-	--gh-fg-muted: hsl(212, 9%, 61%);
-	--gh-fg-subtle: hsl(212, 9%, 48%);
+	--gh-fg: #e6edf3;
+	--gh-fg-muted: #8b949e;
+	--gh-fg-subtle: #6e7681;
 
 	/* GitHub dark's link blue. Every rgb(from var(--accent) ...) tint in
 	   this file follows it. */
@@ -190,6 +194,20 @@ body[data-viewer-tree="open"] {
 	background: var(--gh-canvas);
 	color: var(--gh-fg);
 }
+:root[data-theme="light"] .viewer-shell {
+	--gh-canvas: #ffffff;
+	--gh-inset: #f6f8fa;
+	--gh-raised: #f6f8fa;
+	--gh-raised-hover: #eaeef2;
+	--gh-border: #d0d7de;
+	--gh-border-muted: #d8dee4;
+	--gh-fg: #1f2328;
+	--gh-fg-muted: #656d76;
+	--gh-fg-subtle: #6e7781;
+	--accent: #0969da;
+	--scrim: rgb(31 35 40 / 40%);
+	--shadow-menu: 0 8px 24px rgb(140 149 159 / 28%);
+}
 
 /* ----- Universal header -------------------------------------------- */
 /* Holds only the attribution line. It sits on the darker inset shade,
@@ -206,6 +224,28 @@ body[data-viewer-tree="open"] {
 	background: var(--gh-inset);
 	border-bottom: 1px solid var(--gh-border-muted);
 }
+.viewer-shell .theme-toggle {
+	display: inline-grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	flex: 0 0 auto;
+	border: 1px solid var(--gh-border);
+	border-radius: var(--gh-r);
+	background: var(--gh-raised);
+	color: var(--gh-fg-muted);
+}
+:where(.viewer-shell .theme-toggle) svg {
+	width: 15px;
+	height: 15px;
+	fill: currentColor;
+}
+@media (hover: hover) {
+	.viewer-shell .theme-toggle:hover {
+		background: var(--gh-raised-hover);
+		color: var(--gh-fg);
+	}
+}
 .viewer-shell main {
 	background: var(--gh-canvas);
 }
@@ -219,6 +259,15 @@ body[data-viewer-tree="open"] {
 .viewer-attrib a {
 	color: var(--accent);
 	font-weight: 500;
+}
+.viewer-attrib .footer-signal {
+	display: inline-block;
+	width: 6px;
+	height: 6px;
+	margin-right: 7px;
+	border-radius: 50%;
+	background: var(--accent);
+	box-shadow: 0 0 12px var(--accent);
 }
 @media (hover: hover) {
 	.viewer-attrib a:hover {
@@ -270,8 +319,24 @@ body[data-viewer-tree="open"] {
 	min-height: 0;
 	overflow: hidden;
 }
+.pierre-tree {
+	flex: 1;
+	min-height: 0;
+	width: 100%;
+	--trees-border-color-override: var(--gh-border-muted);
+	--trees-fg-override: var(--gh-fg);
+	--trees-selected-bg-override: var(--gh-raised-hover);
+}
 .viewer__sidebar-search {
 	padding: var(--sp-3);
+}
+
+.pierre-file {
+	min-width: 0;
+	border: 1px solid var(--gh-border-muted);
+	border-top: 0;
+	border-radius: 0 0 var(--gh-r) var(--gh-r);
+	overflow: hidden;
 }
 
 /* GitHub's field: an inset well inside a visible border. */
@@ -566,6 +631,13 @@ body[data-viewer-tree="open"] .viewer__tree-backdrop {
 	/* biome-ignore lint/complexity/noImportantStyles: must override Shiki's inline background-color */
 	background: var(--gh-inset) !important;
 	border-radius: 0;
+}
+:root[data-theme="dark"] .shiki,
+:root[data-theme="dark"] .shiki span {
+	/* biome-ignore lint/complexity/noImportantStyles: Shiki emits its light palette inline */
+	color: var(--shiki-dark) !important;
+	/* biome-ignore lint/complexity/noImportantStyles: Shiki emits its light palette inline */
+	background-color: var(--shiki-dark-bg) !important;
 }
 .codeblock--plain pre {
 	color: var(--gh-fg);

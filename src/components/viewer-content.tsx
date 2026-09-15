@@ -5,12 +5,22 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import * as React from "react";
 import { BranchSwitcher } from "@/components/branch-switcher";
+import { PierreFile } from "@/components/pierre-file";
 import { ReleasesList } from "@/components/releases-list";
 import { RepoTree } from "@/components/repo-tree";
 import { SidebarTree } from "@/components/sidebar-tree";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { ViewerTreeToggle } from "@/components/viewer-tree-toggle";
 import { buildHref, buildReleasesHref } from "@/lib/repo-path";
-import type { ViewerPayload } from "@/lib/viewer-data";
+import {
+	getViewerRepositoryContext,
+	loadViewerRequest,
+	prefetchViewerPath,
+	rememberViewerRepositoryContext,
+	type ViewerRequest,
+	ViewerRequestError,
+} from "@/lib/viewer-client-cache";
+import type { ViewerPathPayload, ViewerPayload } from "@/lib/viewer-data";
 
 function Notice({ title, detail }: { title: string; detail?: string }) {
 	return (
@@ -81,23 +91,10 @@ function ViewerShell({
 			    as our chrome, not part of the shared repo's content. */}
 			<header className="topbar">
 				<span className="viewer-attrib">
-					Private repo shared using{" "}
-					<a
-						href="https://github-unlisted.com"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Github-Unlisted
-					</a>{" "}
-					hosted by{" "}
-					<a
-						href="https://revoconner.com"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Rév
-					</a>
+					<span className="footer-signal" /> Private repository shared with{" "}
+					<a href="/">SourceVault</a>
 				</span>
+				<ThemeToggle />
 			</header>
 
 			{/* The repo's content starts here: owner/repo on its own row, with
@@ -202,8 +199,10 @@ function ReleasesView({
 
 function FileOrDirView({
 	payload,
+	onPrefetchPath,
 }: {
 	payload: Extract<ViewerPayload, { kind: "view" }>;
+	onPrefetchPath: (path: string) => void;
 }) {
 	const {
 		owner,
@@ -216,7 +215,6 @@ function FileOrDirView({
 		fullTree,
 		sidebarEntries,
 		branches,
-		codeHtml,
 		mdHtml,
 		fullName,
 	} = payload;
@@ -242,7 +240,9 @@ function FileOrDirView({
 	// A markdown file with both renderings gets Preview/Code tabs, preview
 	// first. The component is keyed by path at the call site, so the tab
 	// resets to Preview on every navigation.
-	const hasMdTabs = Boolean(mdHtml && codeHtml);
+	const hasCode =
+		contents.kind === "file" && !contents.isBinary && contents.text !== null;
+	const hasMdTabs = Boolean(mdHtml && hasCode);
 	const [mdTab, setMdTab] = React.useState<"preview" | "code">("preview");
 	const showPreview = Boolean(mdHtml) && (!hasMdTabs || mdTab === "preview");
 
@@ -258,6 +258,7 @@ function FileOrDirView({
 							refName={ref}
 							shareId={shareId}
 							activePath={path}
+							onPrefetchPath={onPrefetchPath}
 						/>
 					) : (
 						<SidebarTree
@@ -352,6 +353,8 @@ function FileOrDirView({
 							{contents.entries.map((e) => (
 								<div className="tree__row" key={e.path}>
 									<Link
+										onMouseEnter={() => onPrefetchPath(e.path)}
+										onFocus={() => onPrefetchPath(e.path)}
 										href={buildHref(
 											owner,
 											repo,
@@ -416,11 +419,11 @@ function FileOrDirView({
 								<div className="tree__empty">Binary file not shown.</div>
 							) : showPreview && mdHtml ? (
 								<RepoHtml className="readme" html={mdHtml} shareId={shareId} />
-							) : codeHtml ? (
-								<div
-									className="codeblock"
-									// biome-ignore lint/security/noDangerouslySetInnerHtml: Shiki output
-									dangerouslySetInnerHTML={{ __html: codeHtml }}
+							) : contents.text !== null ? (
+								<PierreFile
+									name={contents.name}
+									contents={contents.text}
+									wrap={wrap}
 								/>
 							) : (
 								<div className="codeblock codeblock--plain">
@@ -441,6 +444,50 @@ type FetchState =
 	| { status: "error" }
 	| { status: "ready"; payload: ViewerPayload };
 
+function pathRequestFor(
+	slug: string[],
+	shareId: string,
+	current: ViewerPayload | null,
+): Extract<ViewerRequest, { operation: "path" }> | null {
+	if (current?.kind !== "view" || current.fullTree === null) return null;
+	const [owner, repo, viewType, ...location] = slug;
+	if (
+		owner !== current.owner ||
+		repo !== current.repo ||
+		(viewType !== "blob" && viewType !== "tree")
+	) {
+		return null;
+	}
+
+	const refParts = current.refName.split("/");
+	if (refParts.some((part, index) => location[index] !== part)) return null;
+	const path = location.slice(refParts.length).join("/");
+	if (!path) return null;
+
+	return {
+		operation: "path",
+		shareId,
+		owner,
+		repo,
+		ref: current.refName,
+		path,
+	};
+}
+
+function mergePathPayload(
+	current: Extract<ViewerPayload, { kind: "view" }>,
+	pathPayload: Extract<ViewerPathPayload, { kind: "path" }>,
+): Extract<ViewerPayload, { kind: "view" }> {
+	return {
+		...current,
+		refName: pathPayload.refName,
+		path: pathPayload.path,
+		crumbs: pathPayload.crumbs,
+		contents: pathPayload.contents,
+		mdHtml: pathPayload.mdHtml,
+	};
+}
+
 // The viewer shell. On mount (and on every soft navigation to a new slug) it
 // POSTs to the BotID-protected /api/view: the browser attaches the challenge
 // token, so a real visitor gets content and a bot gets a 403 it can't satisfy.
@@ -452,7 +499,16 @@ export function ViewerContent({
 	shareId: string;
 }) {
 	const router = useRouter();
-	const [state, setState] = React.useState<FetchState>({ status: "loading" });
+	const initialContext = getViewerRepositoryContext(shareId);
+	const [state, setState] = React.useState<FetchState>(() =>
+		initialContext
+			? { status: "ready", payload: initialContext }
+			: { status: "loading" },
+	);
+	const readyPayloadRef = React.useRef<ViewerPayload | null>(initialContext);
+	if (state.status === "ready") {
+		readyPayloadRef.current = state.payload;
+	}
 
 	const slugKey = slug.join("\u0000");
 	// Keep the freshest slug for the request without making the array itself an
@@ -466,37 +522,48 @@ export function ViewerContent({
 	// biome-ignore lint/correctness/useExhaustiveDependencies: slugKey drives the refetch
 	React.useEffect(() => {
 		let cancelled = false;
-		setState({ status: "loading" });
+		const current = readyPayloadRef.current;
+		const pathRequest = pathRequestFor(slugRef.current, shareId, current);
+		if (!pathRequest) setState({ status: "loading" });
 
 		(async () => {
 			try {
-				const res = await fetch("/api/view", {
-					method: "POST",
-					headers: { "Content-Type": "application/json" },
-					body: JSON.stringify({ slug: slugRef.current, shareId }),
-				});
-
-				if (cancelled) return;
-
-				if (res.status === 403) {
-					setState({ status: "blocked" });
-					return;
-				}
-				if (!res.ok && res.status !== 400 && res.status !== 500) {
-					setState({ status: "error" });
-					return;
-				}
-
-				const payload = (await res.json()) as ViewerPayload;
+				const payload = await loadViewerRequest(
+					pathRequest ?? {
+						operation: "bootstrap",
+						slug: slugRef.current,
+						shareId,
+					},
+				);
 				if (cancelled) return;
 
 				if (payload.kind === "redirect") {
 					router.replace(payload.href);
 					return;
 				}
+				if (payload.kind === "path") {
+					if (current?.kind === "view") {
+						const next = mergePathPayload(current, payload);
+						rememberViewerRepositoryContext(next);
+						setState({ status: "ready", payload: next });
+					} else {
+						setState({ status: "error" });
+					}
+					return;
+				}
+				if (payload.kind === "view") {
+					rememberViewerRepositoryContext(payload);
+				}
 				setState({ status: "ready", payload });
-			} catch {
-				if (!cancelled) setState({ status: "error" });
+			} catch (error) {
+				if (!cancelled) {
+					setState({
+						status:
+							error instanceof ViewerRequestError && error.status === 403
+								? "blocked"
+								: "error",
+					});
+				}
 			}
 		})();
 
@@ -544,10 +611,22 @@ export function ViewerContent({
 	}
 	// Keyed by ref+path so per-file state (the markdown Preview/Code tab)
 	// resets on every navigation instead of leaking to the next file.
+	const onPrefetchPath = (path: string) => {
+		if (!path || payload.fullTree === null) return;
+		prefetchViewerPath({
+			operation: "path",
+			shareId: payload.shareId,
+			owner: payload.owner,
+			repo: payload.repo,
+			ref: payload.refName,
+			path,
+		});
+	};
 	return (
 		<FileOrDirView
 			key={`${payload.refName}:${payload.path}`}
 			payload={payload}
+			onPrefetchPath={onPrefetchPath}
 		/>
 	);
 }

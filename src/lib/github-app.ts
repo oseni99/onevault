@@ -1,6 +1,9 @@
 import { createAppAuth } from "@octokit/auth-app";
 import { Octokit } from "octokit";
 
+const installationClients = new Map<string, Octokit>();
+const MAX_INSTALLATION_CLIENTS = 32;
+
 // Server-only. Never import from client components.
 
 function getAppCredentials() {
@@ -27,10 +30,21 @@ export function getAppOctokit(): Octokit {
 // Installation-level auth: read the repos that installation granted.
 export function getInstallationOctokit(installationId: number): Octokit {
 	const { appId, privateKey } = getAppCredentials();
-	return new Octokit({
+	const key = `${appId}:${installationId}`;
+	const cached = installationClients.get(key);
+	if (cached) return cached;
+
+	const octokit = new Octokit({
 		authStrategy: createAppAuth,
 		auth: { appId, privateKey, installationId },
 	});
+	installationClients.set(key, octokit);
+	while (installationClients.size > MAX_INSTALLATION_CLIENTS) {
+		const oldest = installationClients.keys().next().value;
+		if (oldest === undefined) break;
+		installationClients.delete(oldest);
+	}
+	return octokit;
 }
 
 // The bare installation token. Needed where Octokit's own redirect handling gets in the way, specifically the archive endpoints, which answer 302 with a signed URL we want to forward rather than follow.

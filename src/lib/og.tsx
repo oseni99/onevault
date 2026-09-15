@@ -9,12 +9,7 @@ import { ACCENT } from "@/lib/brand";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-function Slashes() {
-	const bars = [
-		{ d: -22, o: 1 },
-		{ d: 0, o: 0.5 },
-		{ d: 22, o: 0.22 },
-	];
+function VaultMark() {
 	return (
 		<div
 			style={{
@@ -24,22 +19,26 @@ function Slashes() {
 				height: 64,
 				alignItems: "center",
 				justifyContent: "center",
+				borderRadius: 18,
+				background: ACCENT,
 			}}
 		>
-			{bars.map((b) => (
+			<div
+				style={{
+					width: 34,
+					height: 28,
+					marginTop: 10,
+					borderRadius: 7,
+					background: "#080a08",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}
+			>
 				<div
-					key={b.d}
-					style={{
-						position: "absolute",
-						width: 9,
-						height: 64,
-						borderRadius: 5,
-						background: ACCENT,
-						opacity: b.o,
-						transform: `translate(${b.d}px, ${b.d}px) rotate(-45deg)`,
-					}}
+					style={{ width: 5, height: 9, borderRadius: 3, background: ACCENT }}
 				/>
-			))}
+			</div>
 		</div>
 	);
 }
@@ -60,7 +59,7 @@ export function ogImage(title: string, subtitle: string) {
 			}}
 		>
 			<div style={{ display: "flex", alignItems: "center" }}>
-				<Slashes />
+				<VaultMark />
 				<div
 					style={{
 						display: "flex",
@@ -70,8 +69,8 @@ export function ogImage(title: string, subtitle: string) {
 						letterSpacing: "-0.02em",
 					}}
 				>
-					<span style={{ color: "#8f93a0" }}>github</span>
-					<span style={{ color: ACCENT, marginLeft: 10 }}>unlisted</span>
+					<span style={{ color: "#8f93a0" }}>source</span>
+					<span style={{ color: ACCENT }}>vault</span>
 				</div>
 			</div>
 
@@ -111,8 +110,8 @@ export function ogImage(title: string, subtitle: string) {
 					color: "#777b86",
 				}}
 			>
-				<span>www.github-unlisted.com</span>
-				<span>Free · open source</span>
+				<span>sourcevault</span>
+				<span>Private by default · open source</span>
 			</div>
 		</div>,
 		{ ...size },

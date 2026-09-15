@@ -48,8 +48,9 @@ function langFor(name: string): string {
 	return EXT[ext] ?? "text";
 }
 
-// Returns Shiki-generated HTML (inline styles, dark theme) or null on failure
-// so the caller can fall back to a plain <pre>.
+// Returns Shiki-generated HTML with both GitHub palettes. Shiki emits the
+// dark colors as CSS variables, allowing the viewer's persisted data-theme
+// preference to switch palettes without highlighting again in the browser.
 export async function highlight(
 	code: string,
 	filename: string,
@@ -66,11 +67,16 @@ export async function highlightByLang(
 	try {
 		return await codeToHtml(code, {
 			lang: lang || "text",
-			theme: "github-dark",
+			themes: { light: "github-light", dark: "github-dark" },
+			defaultColor: "light",
 		});
 	} catch {
 		try {
-			return await codeToHtml(code, { lang: "text", theme: "github-dark" });
+			return await codeToHtml(code, {
+				lang: "text",
+				themes: { light: "github-light", dark: "github-dark" },
+				defaultColor: "light",
+			});
 		} catch {
 			return null;
 		}

@@ -6,7 +6,7 @@ export const alt = SITE.defaultTitle;
 
 export default function Image() {
 	return ogImage(
-		"Share a private GitHub repo by link",
+		"Private code, shared on your terms",
 		"No collaborator invites, no GitHub account for the recipient. You keep full control.",
 	);
 }

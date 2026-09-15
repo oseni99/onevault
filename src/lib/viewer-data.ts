@@ -10,7 +10,6 @@ import {
 	listReleases,
 	type TreeItem,
 } from "@/lib/github-repo";
-import { highlight } from "@/lib/highlight";
 import { isMarkdown, renderMarkdown } from "@/lib/markdown";
 import { renderMarkdownGitHub } from "@/lib/markdown-github";
 import {
@@ -19,7 +18,6 @@ import {
 	resolveRef,
 	splitRefFromBranches,
 } from "@/lib/repo-path";
-import { getSession } from "@/lib/session";
 import { resolveShare } from "@/lib/share-store";
 
 // Everything the viewer needs to render, as plain serializable data. Produced
@@ -35,7 +33,6 @@ export type ViewerPayload =
 			kind: "releases";
 			fullName: string;
 			refName: string;
-			signedIn: boolean;
 			owner: string;
 			repo: string;
 			shareId: string;
@@ -45,12 +42,10 @@ export type ViewerPayload =
 			kind: "view";
 			fullName: string;
 			refName: string;
-			signedIn: boolean;
 			owner: string;
 			repo: string;
 			shareId: string;
 			contents: Contents;
-			codeHtml: string | null;
 			mdHtml: string | null;
 			fullTree: TreeItem[] | null;
 			sidebarEntries: DirEntry[];
@@ -60,6 +55,101 @@ export type ViewerPayload =
 			showReleases: boolean;
 			allowDownload: boolean;
 	  };
+
+// Path-specific data returned after the repository context has already been
+// bootstrapped in the browser. A file click should not carry the tree again.
+export type ViewerPathPayload =
+	| { kind: "notice"; title: string; detail?: string }
+	| {
+			kind: "path";
+			refName: string;
+			path: string;
+			crumbs: string[];
+			contents: Contents;
+			mdHtml: string | null;
+	  };
+
+async function renderContentsPreview(
+	octokit: ReturnType<typeof getInstallationOctokit>,
+	owner: string,
+	repo: string,
+	contents: Contents,
+): Promise<string | null> {
+	if (
+		contents.kind !== "file" ||
+		contents.isBinary ||
+		!contents.text ||
+		!isMarkdown(contents.name)
+	) {
+		return null;
+	}
+
+	return (
+		(await renderMarkdownGitHub(octokit, owner, repo, contents.text)) ??
+		renderMarkdown(contents.text)
+	);
+}
+
+// Live navigation revalidates access on every request, but deliberately skips
+// stable repository metadata, branches, and the recursive tree.
+export async function resolveViewerPath({
+	shareId,
+	owner,
+	repo,
+	ref,
+	path,
+}: {
+	shareId: string;
+	owner: string;
+	repo: string;
+	ref: string;
+	path: string;
+}): Promise<ViewerPathPayload> {
+	if (!shareId || !owner || !repo || !ref || !path) {
+		return { kind: "notice", title: "Bad request" };
+	}
+
+	const target = await resolveShare(shareId);
+	if (!target) {
+		return {
+			kind: "notice",
+			title: "Link invalid or expired",
+			detail: "This share link no longer works. Ask the owner for a new one.",
+		};
+	}
+	if (target.owner !== owner || target.repo !== repo) {
+		return {
+			kind: "notice",
+			title: "This link does not match this repository",
+		};
+	}
+	if (target.ref && target.ref !== ref) {
+		return {
+			kind: "notice",
+			title: "This branch is not available for this link",
+		};
+	}
+
+	try {
+		const octokit = getInstallationOctokit(target.installationId);
+		const contents = await getContents(octokit, owner, repo, path, ref);
+		const mdHtml = await renderContentsPreview(octokit, owner, repo, contents);
+		return {
+			kind: "path",
+			refName: ref,
+			path,
+			crumbs: path.split("/"),
+			contents,
+			mdHtml,
+		};
+	} catch {
+		return {
+			kind: "notice",
+			title: "Something went wrong",
+			detail: "This file could not be loaded. Please try again.",
+		};
+	}
+}
 
 // Mirrors the old server component ViewPage: same branches, same order, same
 // GitHub calls — it just returns data instead of JSX, and returns redirect
@@ -94,18 +184,6 @@ export async function resolveViewer(
 		};
 	}
 
-	const octokit = getInstallationOctokit(target.installationId);
-	let meta: Awaited<ReturnType<typeof getRepoMeta>>;
-	try {
-		meta = await getRepoMeta(octokit, target.owner, target.repo);
-	} catch {
-		return {
-			kind: "notice",
-			title: "Access revoked",
-			detail: "The app no longer has access to this repository.",
-		};
-	}
-
 	const isReleases = parsed.viewType === "releases";
 	if (isReleases && target.showReleases !== true) {
 		return {
@@ -117,9 +195,23 @@ export async function resolveViewer(
 
 	// Only for an unlocked share whose owner opted in. A locked share must never enumerate branches, which is the point of locking. The releases view addresses no ref, so it never shows the switcher.
 	const switcherOn = !isReleases && !target.ref && target.showBranches === true;
-	const branches = switcherOn
-		? await listBranches(octokit, target.owner, target.repo)
-		: null;
+	const octokit = getInstallationOctokit(target.installationId);
+	let meta: Awaited<ReturnType<typeof getRepoMeta>>;
+	let branches: string[] | null;
+	try {
+		[meta, branches] = await Promise.all([
+			getRepoMeta(octokit, target.owner, target.repo),
+			switcherOn
+				? listBranches(octokit, target.owner, target.repo)
+				: Promise.resolve(null),
+		]);
+	} catch {
+		return {
+			kind: "notice",
+			title: "Access revoked",
+			detail: "The app no longer has access to this repository.",
+		};
+	}
 
 	// A locked share pins one branch. Redirect (rather than error) so deep links that predate the lock, or point at another branch, still land somewhere useful. path is re-split here because a slashed branch name occupies more than one URL segment.
 	const resolved = resolveRef(
@@ -154,10 +246,6 @@ export async function resolveViewer(
 		};
 	}
 
-	// Owner viewing their own share is signed in; recipients are not. Drives whether the Dashboard nav item appears.
-	const session = await getSession();
-	const signedIn = Boolean(session);
-
 	if (isReleases) {
 		// Release notes go through markdown-it (html:false) rather than GitHub's renderer: one API call per release would be dozens per page, and the notes do not need issue/@user linking to read correctly.
 		const releases: RenderedRelease[] = (
@@ -171,7 +259,6 @@ export async function resolveViewer(
 			kind: "releases",
 			fullName: meta.fullName,
 			refName: ref,
-			signedIn,
 			owner: target.owner,
 			repo: target.repo,
 			shareId,
@@ -179,13 +266,10 @@ export async function resolveViewer(
 		};
 	}
 
-	const contents = await getContents(
-		octokit,
-		target.owner,
-		target.repo,
-		path,
-		ref,
-	);
+	const [contents, tree] = await Promise.all([
+		getContents(octokit, target.owner, target.repo, path, ref),
+		getRepoTree(octokit, target.owner, target.repo, ref),
+	]);
 
 	// The bare repo link opens the README as a file (not a directory listing).
 	if (contents.kind === "dir" && path === "") {
@@ -213,7 +297,6 @@ export async function resolveViewer(
 	// Whole-repo tree for the sidebar (one recursive call). Falls back to the
 	// current directory's listing if the ref can't be read or the tree is too
 	// large for the API to return in full.
-	const tree = await getRepoTree(octokit, target.owner, target.repo, ref);
 	const fullTree =
 		tree && !tree.truncated && tree.items.length > 0 ? tree.items : null;
 
@@ -222,7 +305,7 @@ export async function resolveViewer(
 	let sidebarEntries: DirEntry[] = [];
 	if (contents.kind === "dir") {
 		sidebarEntries = contents.entries;
-	} else if (contents.kind === "file") {
+	} else if (contents.kind === "file" && fullTree === null) {
 		const parentPath = path.includes("/")
 			? path.slice(0, path.lastIndexOf("/"))
 			: "";
@@ -236,34 +319,23 @@ export async function resolveViewer(
 		if (parent.kind === "dir") sidebarEntries = parent.entries;
 	}
 
-	let codeHtml: string | null = null;
-	let mdHtml: string | null = null;
-	if (contents.kind === "file" && !contents.isBinary && contents.text) {
-		// Every text file gets highlighted source. A markdown file gets the
-		// rendered preview AS WELL, so the client can offer Preview/Code tabs
-		// (preview is the default; both present = show the tabs).
-		codeHtml = await highlight(contents.text, contents.name);
-		if (isMarkdown(contents.name)) {
-			mdHtml =
-				(await renderMarkdownGitHub(
-					octokit,
-					target.owner,
-					target.repo,
-					contents.text,
-				)) ?? renderMarkdown(contents.text);
-		}
-	}
+	// Markdown files also get a rendered preview, while raw source is rendered
+	// client-side by @pierre/diffs.
+	const mdHtml = await renderContentsPreview(
+		octokit,
+		target.owner,
+		target.repo,
+		contents,
+	);
 
 	return {
 		kind: "view",
 		fullName: meta.fullName,
 		refName: ref,
-		signedIn,
 		owner: target.owner,
 		repo: target.repo,
 		shareId,
 		contents,
-		codeHtml,
 		mdHtml,
 		fullTree,
 		sidebarEntries,

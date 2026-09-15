@@ -1,4 +1,18 @@
 import type { Octokit } from "octokit";
+import { createAsyncTtlCache } from "@/lib/async-ttl-cache";
+
+const REPOSITORY_CONTEXT_TTL_MS = 60_000;
+const repoMetaCache = createAsyncTtlCache<RepoMeta>({
+	ttlMs: REPOSITORY_CONTEXT_TTL_MS,
+});
+const repoTreeCache = createAsyncTtlCache<{
+	items: TreeItem[];
+	truncated: boolean;
+} | null>({ ttlMs: REPOSITORY_CONTEXT_TTL_MS });
+const repoContentsCache = createAsyncTtlCache<Contents>({
+	ttlMs: REPOSITORY_CONTEXT_TTL_MS,
+	maxEntries: 32,
+});
 
 // Read helpers, all called server-side with an installation Octokit.
 
@@ -13,12 +27,15 @@ export async function getRepoMeta(
 	owner: string,
 	repo: string,
 ): Promise<RepoMeta> {
-	const { data } = await octokit.rest.repos.get({ owner, repo });
-	return {
-		fullName: data.full_name,
-		private: data.private,
-		defaultBranch: data.default_branch,
-	};
+	const key = `${owner}/${repo}`.toLowerCase();
+	return repoMetaCache.get(key, async () => {
+		const { data } = await octokit.rest.repos.get({ owner, repo });
+		return {
+			fullName: data.full_name,
+			private: data.private,
+			defaultBranch: data.default_branch,
+		};
+	});
 }
 
 export async function listBranches(
@@ -115,32 +132,44 @@ export async function getRepoTree(
 	repo: string,
 	ref: string,
 ): Promise<{ items: TreeItem[]; truncated: boolean } | null> {
-	try {
-		const branch = await octokit.rest.repos.getBranch({
-			owner,
-			repo,
-			branch: ref,
-		});
-		const treeSha = branch.data.commit.commit.tree.sha;
-		const { data } = await octokit.rest.git.getTree({
-			owner,
-			repo,
-			tree_sha: treeSha,
-			recursive: "true",
-		});
-		const items: TreeItem[] = [];
-		for (const t of data.tree) {
-			if (!t.path) continue;
-			if (t.type === "tree") items.push({ path: t.path, type: "dir" });
-			else if (t.type === "blob") items.push({ path: t.path, type: "file" });
+	const key = `${owner}/${repo}@${ref}`.toLowerCase();
+	return repoTreeCache.get(key, async () => {
+		try {
+			// GitHub accepts a branch/tag ref directly as tree_sha, avoiding a
+			// separate branch lookup before every recursive tree request.
+			const { data } = await octokit.rest.git.getTree({
+				owner,
+				repo,
+				tree_sha: ref,
+				recursive: "true",
+			});
+			const items: TreeItem[] = [];
+			for (const t of data.tree) {
+				if (!t.path) continue;
+				if (t.type === "tree") items.push({ path: t.path, type: "dir" });
+				else if (t.type === "blob") items.push({ path: t.path, type: "file" });
+			}
+			return { items, truncated: Boolean(data.truncated) };
+		} catch {
+			return null;
 		}
-		return { items, truncated: Boolean(data.truncated) };
-	} catch {
-		return null;
-	}
+	});
 }
 
 export async function getContents(
+	octokit: Octokit,
+	owner: string,
+	repo: string,
+	path: string,
+	ref: string,
+): Promise<Contents> {
+	const key = `${owner}/${repo}@${ref}:${path}`.toLowerCase();
+	return repoContentsCache.get(key, () =>
+		loadContents(octokit, owner, repo, path, ref),
+	);
+}
+
+async function loadContents(
 	octokit: Octokit,
 	owner: string,
 	repo: string,

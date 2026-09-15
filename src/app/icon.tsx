@@ -1,17 +1,11 @@
 import { ImageResponse } from "next/og";
 import { ACCENT } from "@/lib/brand";
 
-// Brand mark: the wordmark's three fading diagonal slashes on the app bg.
-// Shapes only — no text, so Satori needs no font.
+// SourceVault mark: a compact lock inside the acid-lime brand tile.
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
 function Mark({ radius }: { radius: number }) {
-	const bars = [
-		{ d: -78, o: 1 },
-		{ d: 0, o: 0.5 },
-		{ d: 78, o: 0.22 },
-	];
 	return (
 		<div
 			style={{
@@ -20,25 +14,56 @@ function Mark({ radius }: { radius: number }) {
 				display: "flex",
 				alignItems: "center",
 				justifyContent: "center",
-				background: "#0a0b0e",
+				background: "#080a08",
 				borderRadius: radius,
 				position: "relative",
 			}}
 		>
-			{bars.map((b) => (
+			<div
+				style={{
+					width: 330,
+					height: 330,
+					borderRadius: 92,
+					background: ACCENT,
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+					position: "relative",
+				}}
+			>
 				<div
-					key={b.d}
 					style={{
 						position: "absolute",
-						width: 64,
-						height: 470,
-						borderRadius: 32,
-						background: ACCENT,
-						opacity: b.o,
-						transform: `translate(${b.d}px, ${b.d}px) rotate(-45deg)`,
+						top: 70,
+						width: 128,
+						height: 126,
+						border: "24px solid #080a08",
+						borderBottom: "0",
+						borderRadius: "70px 70px 0 0",
 					}}
 				/>
-			))}
+				<div
+					style={{
+						width: 208,
+						height: 148,
+						marginTop: 84,
+						borderRadius: 38,
+						background: "#080a08",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+					}}
+				>
+					<div
+						style={{
+							width: 30,
+							height: 48,
+							borderRadius: 16,
+							background: ACCENT,
+						}}
+					/>
+				</div>
+			</div>
 		</div>
 	);
 }

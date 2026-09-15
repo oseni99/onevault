@@ -41,7 +41,7 @@ const log: LogEntry[] = [
 		endedUtc: "2026-08-07 00:35 UTC",
 		category: "maintenance",
 		severity: "medium",
-		body: "Nothing was affected, just testing things to make sure nothing was broken. All in all, no user or viewer were affected.",	
+		body: "Nothing was affected, just testing things to make sure nothing was broken. All in all, no user or viewer were affected.",
 	},
 	{
 		id: "2026-08-04-share-controls",
@@ -115,10 +115,10 @@ export default async function StatusPage() {
 	return (
 		<div className="page-shell">
 			<header className="topbar">
-				<a className="wordmark" href="/" aria-label="github unlisted home">
+				<a className="wordmark" href="/" aria-label="SourceVault home">
 					<span className="mark" aria-hidden="true">
 						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<title>unlisted</title>
+							<title>SourceVault</title>
 							<line
 								x1="2"
 								y1="11"
@@ -151,8 +151,8 @@ export default async function StatusPage() {
 						</svg>
 					</span>
 					<span className="word">
-						<span className="pre">github</span>{" "}
-						<span className="post">unlisted</span>
+						<span className="pre">source</span>
+						<span className="post">vault</span>
 					</span>
 				</a>
 
