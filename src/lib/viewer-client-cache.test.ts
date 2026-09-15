@@ -38,16 +38,66 @@ describe("viewer client cache", () => {
 			json: async () => pathPayload,
 		}));
 		vi.stubGlobal("fetch", fetchMock);
-		const { loadViewerRequest } = await import("./viewer-client-cache");
+		const { loadViewerRequest, prefetchViewerPath } = await import(
+			"./viewer-client-cache"
+		);
 
-		const prefetch = loadViewerRequest(pathRequest);
+		prefetchViewerPath(pathRequest);
 		const navigation = loadViewerRequest(pathRequest);
 
-		await expect(Promise.all([prefetch, navigation])).resolves.toEqual([
-			pathPayload,
-			pathPayload,
-		]);
+		await expect(navigation).resolves.toEqual(pathPayload);
 		expect(fetchMock).toHaveBeenCalledOnce();
+	});
+
+	it("limits speculative requests while allowing immediate navigation", async () => {
+		let finish!: () => void;
+		const pending = new Promise<void>((resolve) => {
+			finish = resolve;
+		});
+		const fetchMock = vi.fn(async () => {
+			await pending;
+			return { ok: true, status: 200, json: async () => pathPayload };
+		});
+		vi.stubGlobal("fetch", fetchMock);
+		const { loadViewerRequest, prefetchViewerPath } = await import(
+			"./viewer-client-cache"
+		);
+		prefetchViewerPath(pathRequest);
+		prefetchViewerPath(pathRequest);
+		for (let index = 0; index < 1000; index += 1) {
+			prefetchViewerPath({ ...pathRequest, path: `file-${index}.ts` });
+		}
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+		const navigation = loadViewerRequest({
+			...pathRequest,
+			path: "clicked.ts",
+		});
+		expect(fetchMock).toHaveBeenCalledTimes(3);
+		finish();
+		await navigation;
+		// Let speculative completion release its slots.
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		prefetchViewerPath({ ...pathRequest, path: "later.ts" });
+		expect(fetchMock).toHaveBeenCalledTimes(4);
+	});
+
+	it("releases prefetch slots after failures so navigation can retry", async () => {
+		const fetchMock = vi.fn().mockRejectedValue(new Error("offline"));
+		vi.stubGlobal("fetch", fetchMock);
+		const { loadViewerRequest, prefetchViewerPath } = await import(
+			"./viewer-client-cache"
+		);
+		prefetchViewerPath(pathRequest);
+		prefetchViewerPath({ ...pathRequest, path: "b.ts" });
+		await new Promise((resolve) => setTimeout(resolve, 0));
+		fetchMock.mockResolvedValue({
+			ok: true,
+			status: 200,
+			json: async () => pathPayload,
+		});
+		prefetchViewerPath(pathRequest);
+		await expect(loadViewerRequest(pathRequest)).resolves.toEqual(pathPayload);
+		expect(fetchMock).toHaveBeenCalledTimes(3);
 	});
 
 	it("keeps repository context only for the live-cache window", async () => {

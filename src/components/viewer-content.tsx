@@ -19,6 +19,7 @@ import { buildHref, buildReleasesHref } from "@/lib/repo-path";
 import {
 	getViewerRepositoryContext,
 	loadViewerRequest,
+	prefetchViewerPath,
 	rememberViewerRepositoryContext,
 	type ViewerRequest,
 	ViewerRequestError,
@@ -661,18 +662,17 @@ export function ViewerContent({
 	}
 	const onPrefetchPath = (path: string) => {
 		if (!path || payload.fullTree === null) return;
-		void loadViewerRequest({
-			operation: "path",
-			shareId: payload.shareId,
-			owner: payload.owner,
-			repo: payload.repo,
-			ref: payload.refName,
-			path,
-		})
-			.then(preloadPayloadHighlighter)
-			.catch(() => {
-				// Prefetch is opportunistic; navigation will retry a failed request.
-			});
+		prefetchViewerPath(
+			{
+				operation: "path",
+				shareId: payload.shareId,
+				owner: payload.owner,
+				repo: payload.repo,
+				ref: payload.refName,
+				path,
+			},
+			preloadPayloadHighlighter,
+		);
 	};
 	return <FileOrDirView payload={payload} onPrefetchPath={onPrefetchPath} />;
 }

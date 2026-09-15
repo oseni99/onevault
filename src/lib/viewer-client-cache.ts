@@ -108,10 +108,26 @@ export function loadViewerRequest(
 	return guarded;
 }
 
+const activePrefetches = new Set<string>();
+const MAX_ACTIVE_PREFETCHES = 2;
+
 export function prefetchViewerPath(
 	request: Extract<ViewerRequest, { operation: "path" }>,
+	onLoad?: (payload: ViewerResponse) => Promise<void>,
 ): void {
-	void loadViewerRequest(request).catch(() => {
-		// Prefetch is opportunistic; navigation will retry a failed request.
-	});
+	const key = requestKey(request);
+	if (
+		activePrefetches.has(key) ||
+		activePrefetches.size >= MAX_ACTIVE_PREFETCHES
+	) {
+		return;
+	}
+	// Drop excess speculative work. Explicit navigation still loads immediately.
+	activePrefetches.add(key);
+	void loadViewerRequest(request)
+		.then(onLoad)
+		.catch(() => {
+			// Prefetch is opportunistic; navigation will retry a failed request.
+		})
+		.finally(() => activePrefetches.delete(key));
 }

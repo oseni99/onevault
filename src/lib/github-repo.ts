@@ -132,7 +132,7 @@ export async function getRepoTree(
 	repo: string,
 	ref: string,
 ): Promise<{ items: TreeItem[]; truncated: boolean } | null> {
-	const key = `${owner}/${repo}@${ref}`.toLowerCase();
+	const key = JSON.stringify([owner.toLowerCase(), repo.toLowerCase(), ref]);
 	return repoTreeCache.get(key, async () => {
 		try {
 			// GitHub accepts a branch/tag ref directly as tree_sha, avoiding a
@@ -163,7 +163,13 @@ export async function getContents(
 	path: string,
 	ref: string,
 ): Promise<Contents> {
-	const key = `${owner}/${repo}@${ref}:${path}`.toLowerCase();
+	// Git refs and file paths are case-sensitive, unlike owner/repo names.
+	const key = JSON.stringify([
+		owner.toLowerCase(),
+		repo.toLowerCase(),
+		ref,
+		path,
+	]);
 	return repoContentsCache.get(key, () =>
 		loadContents(octokit, owner, repo, path, ref),
 	);

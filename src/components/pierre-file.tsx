@@ -1,17 +1,15 @@
 "use client";
 
-import {
-	DEFAULT_THEMES,
-	getFiletypeFromFileName,
-	preloadHighlighter,
-} from "@pierre/diffs";
+import { getFiletypeFromFileName, preloadHighlighter } from "@pierre/diffs";
 import { File } from "@pierre/diffs/react";
 import * as React from "react";
 import { useDocumentTheme } from "@/components/use-document-theme";
 
+const CODE_THEMES = { light: "github-light", dark: "github-dark" } as const;
+
 export function preloadPierreFile(name: string): Promise<void> {
 	return preloadHighlighter({
-		themes: [DEFAULT_THEMES.light, DEFAULT_THEMES.dark],
+		themes: [CODE_THEMES.light, CODE_THEMES.dark],
 		langs: [getFiletypeFromFileName(name)],
 	});
 }
@@ -29,10 +27,12 @@ export function PierreFile({
 	const file = React.useMemo(() => ({ name, contents }), [name, contents]);
 	const options = React.useMemo(
 		() => ({
+			theme: CODE_THEMES,
+			themeType,
 			overflow: wrap ? ("wrap" as const) : ("scroll" as const),
 			unsafeCSS: "[data-diffs-header] { display: none !important; }",
 		}),
-		[wrap],
+		[wrap, themeType],
 	);
 
 	return (
