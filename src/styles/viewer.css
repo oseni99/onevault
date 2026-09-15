@@ -305,10 +305,11 @@ body[data-viewer-tree="open"] {
 /* The viewer <main> grows to fill the gap between topbar and footer;
    min-height:0 lets the inner panes own their scroll. */
 .viewer {
+	--viewer-sidebar-width: 300px;
 	flex: 1;
 	min-height: 0;
 	display: grid;
-	grid-template-columns: 300px 1fr;
+	grid-template-columns: var(--viewer-sidebar-width) 5px minmax(0, 1fr);
 }
 /* The releases view has no file tree, so it drops the sidebar column. */
 .viewer--wide {
@@ -316,11 +317,28 @@ body[data-viewer-tree="open"] {
 }
 
 .viewer__sidebar {
-	border-right: 1px solid var(--gh-border-muted);
 	display: flex;
 	flex-direction: column;
 	min-height: 0;
 	overflow: hidden;
+}
+.viewer__sidebar-resizer {
+	position: relative;
+	margin: 0;
+	border: 0;
+	background: var(--gh-border-muted);
+	cursor: col-resize;
+	touch-action: none;
+}
+.viewer__sidebar-resizer::after {
+	content: "";
+	position: absolute;
+	inset: 0 -3px;
+}
+.viewer__sidebar-resizer:hover,
+.viewer__sidebar-resizer:focus-visible {
+	background: var(--accent);
+	outline: none;
 }
 .pierre-tree {
 	flex: 1;
@@ -986,7 +1004,7 @@ body[data-viewer-tree="open"] .viewer__tree-backdrop {
 /* Tablet band - narrow the file tree, tighten the topbar. */
 @media (max-width: 1250px) {
 	.viewer {
-		grid-template-columns: 240px 1fr;
+		--viewer-sidebar-width: 240px;
 	}
 	.viewer-shell .topbar {
 		padding: 14px 24px;
@@ -1004,6 +1022,9 @@ body[data-viewer-tree="open"] .viewer__tree-backdrop {
 	}
 	.viewer {
 		grid-template-columns: 1fr;
+	}
+	.viewer__sidebar-resizer {
+		display: none;
 	}
 	.viewer__sidebar {
 		position: fixed;

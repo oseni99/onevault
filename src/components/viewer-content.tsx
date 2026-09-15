@@ -10,6 +10,10 @@ import { ReleasesList } from "@/components/releases-list";
 import { RepoTree } from "@/components/repo-tree";
 import { SidebarTree } from "@/components/sidebar-tree";
 import { ThemeToggle } from "@/components/theme-toggle";
+import {
+	clampViewerSidebarWidth,
+	ViewerSidebarResizer,
+} from "@/components/viewer-sidebar-resizer";
 import { ViewerTreeToggle } from "@/components/viewer-tree-toggle";
 import { buildHref, buildReleasesHref } from "@/lib/repo-path";
 import {
@@ -235,6 +239,20 @@ function FileOrDirView({
 			}
 			return !w;
 		});
+	const [sidebarWidth, setSidebarWidth] = React.useState<number | null>(() => {
+		if (typeof window === "undefined") return null;
+		const stored = Number(window.localStorage.getItem("viewer:sidebar-width"));
+		return Number.isFinite(stored) && stored > 0
+			? clampViewerSidebarWidth(stored)
+			: null;
+	});
+	const rememberSidebarWidth = (width: number) => {
+		try {
+			window.localStorage.setItem("viewer:sidebar-width", String(width));
+		} catch {
+			// Private-mode storage failures just lose the persistence.
+		}
+	};
 
 	// A markdown file with both renderings gets Preview/Code tabs, preview
 	// first. Tie the tab choice to its path so a new file resets just this state
@@ -251,8 +269,17 @@ function FileOrDirView({
 
 	return (
 		<ViewerShell fullName={fullName} refName={ref}>
-			<main className="viewer">
-				<aside className="viewer__sidebar">
+			<main
+				className="viewer"
+				style={
+					sidebarWidth === null
+						? undefined
+						: ({
+								"--viewer-sidebar-width": `${sidebarWidth}px`,
+							} as React.CSSProperties)
+				}
+			>
+				<aside className="viewer__sidebar" id="viewer-file-tree">
 					{fullTree ? (
 						<RepoTree
 							items={fullTree}
@@ -275,6 +302,11 @@ function FileOrDirView({
 						/>
 					)}
 				</aside>
+				<ViewerSidebarResizer
+					width={sidebarWidth}
+					onResize={setSidebarWidth}
+					onResizeEnd={rememberSidebarWidth}
+				/>
 
 				<section className="viewer__main" data-wrap={wrap ? "on" : undefined}>
 					<div className="viewer__topinfo">
