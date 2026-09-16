@@ -176,7 +176,9 @@ describe("dashboard activity refresh", () => {
 		fireEvent.change(screen.getByRole("combobox", { name: /Period/ }), {
 			target: { value: "30" },
 		});
-		fireEvent.click(screen.getByRole("button", { name: "Refresh activity" }));
+		fireEvent.click(
+			screen.getByRole("button", { name: "Refresh repositories & activity" }),
+		);
 		expect(refresh).toHaveBeenCalledOnce();
 		view.rerender(
 			<DashboardClient

@@ -1467,3 +1467,56 @@ main {
 		scroll-behavior: auto !important;
 	}
 }
+
+/* Match the repository preview to the page theme, including its code colors. */
+:root[data-theme="light"] .product-preview {
+	background: var(--bg);
+	border-color: var(--border);
+	box-shadow: var(--shadow-hero);
+}
+:root[data-theme="light"] .product-preview__chrome,
+:root[data-theme="light"] .preview-tree {
+	background: var(--surface);
+}
+:root[data-theme="light"] .preview-label,
+:root[data-theme="light"] .preview-tree li span,
+:root[data-theme="light"] .preview-code__head span:last-child,
+:root[data-theme="light"] .code-lines b {
+	color: var(--text-muted);
+}
+:root[data-theme="light"] .preview-tree li {
+	color: var(--text-2);
+}
+:root[data-theme="light"] .preview-tree li.is-active {
+	color: var(--accent);
+	background: rgb(from var(--accent) r g b / 0.09);
+}
+:root[data-theme="light"] .preview-tree li.is-active span {
+	color: var(--accent);
+}
+:root[data-theme="light"] .code-lines {
+	color: var(--text);
+}
+:root[data-theme="light"] .code-pink {
+	color: #cf222e;
+}
+:root[data-theme="light"] .code-purple {
+	color: #8250df;
+}
+:root[data-theme="light"] .preview-note {
+	background: rgb(from var(--accent) r g b / 0.05);
+	border-color: rgb(from var(--accent) r g b / 0.2);
+}
+:root[data-theme="light"] .floating-chip {
+	background: var(--bg);
+	box-shadow: 0 8px 24px rgb(31 35 40 / 0.1);
+}
+:root[data-theme="light"] .preview-orbit {
+	border-color: rgb(from var(--accent) r g b / 0.1);
+}
+:root[data-theme="light"] .how-strip {
+	background: var(--surface);
+}
+:root[data-theme="light"] .how-strip i {
+	color: var(--text-muted);
+}

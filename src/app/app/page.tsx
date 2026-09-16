@@ -142,6 +142,15 @@ export default async function AppPage({
 	}
 
 	return (
-		<DashboardClient repos={repos} shares={shares} login={session.login} />
+		<DashboardClient
+			repos={repos}
+			shares={shares}
+			login={session.login}
+			manageRepositoriesHref={
+				APP_SLUG
+					? `https://github.com/apps/${encodeURIComponent(APP_SLUG)}/installations/new`
+					: "https://github.com/settings/installations"
+			}
+		/>
 	);
 }

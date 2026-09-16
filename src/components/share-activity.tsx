@@ -14,6 +14,24 @@ export function ShareActivity({
 	const days = metrics.dailyOpens.slice(-range);
 	const maximum = Math.max(1, ...days.map((day) => day.count));
 	const total = days.reduce((sum, day) => sum + day.count, 0);
+	const hasDownloads =
+		metrics.sourceDownloads > 0 || metrics.releaseDownloads > 0;
+	if (
+		metrics.viewCount === 0 &&
+		!hasDownloads &&
+		metrics.dailyOpens.every((day) => day.count === 0)
+	) {
+		return (
+			<section
+				className="share-activity"
+				aria-label={`Link activity for ${name}`}
+			>
+				<h2>Link activity</h2>
+				<p>0 opens so far.</p>
+			</section>
+		);
+	}
+
 	return (
 		<section
 			className="share-activity"
@@ -36,52 +54,58 @@ export function ShareActivity({
 				{total} opens in the last {range} days · {metrics.viewCount} all-time
 				opens
 			</p>
-			<div
-				className="share-activity__chart"
-				role="img"
-				aria-label={`Daily opens for the last ${range} days: ${days.map((day) => `${day.date}: ${day.count}`).join(", ")}`}
-			>
-				{days.map((day) => (
+			{total > 0 && (
+				<>
 					<div
-						className="share-activity__column"
-						key={day.date}
-						title={`${day.date} (UTC): ${day.count} opens`}
+						className="share-activity__chart"
+						role="img"
+						aria-label={`Daily opens for the last ${range} days: ${days.map((day) => `${day.date}: ${day.count}`).join(", ")}`}
 					>
-						<div
-							className="share-activity__bar"
-							style={{ height: `${(day.count / maximum) * 100}%` }}
-						/>
-					</div>
-				))}
-			</div>
-			<div className="share-activity__dates">
-				<span>{days[0]?.date}</span>
-				<span>{days.at(-1)?.date} (UTC)</span>
-			</div>
-			{total === 0 && <p>No opens recorded in this period.</p>}
-			<details>
-				<summary>View daily counts</summary>
-				<table>
-					<thead>
-						<tr>
-							<th scope="col">Date (UTC)</th>
-							<th scope="col">Opens</th>
-						</tr>
-					</thead>
-					<tbody>
 						{days.map((day) => (
-							<tr key={day.date}>
-								<th scope="row">{day.date}</th>
-								<td>{day.count}</td>
-							</tr>
+							<div
+								className="share-activity__column"
+								key={day.date}
+								title={`${day.date} (UTC): ${day.count} opens`}
+							>
+								<div
+									className="share-activity__bar"
+									style={{ height: `${(day.count / maximum) * 100}%` }}
+								/>
+							</div>
 						))}
-					</tbody>
-				</table>
-			</details>
-			<p>
-				{metrics.sourceDownloads} source ZIP downloads ·{" "}
-				{metrics.releaseDownloads} release downloads
-			</p>
+					</div>
+					<div className="share-activity__dates">
+						<span>{days[0]?.date}</span>
+						<span>{days.at(-1)?.date} (UTC)</span>
+					</div>
+					<details>
+						<summary>View daily counts</summary>
+						<table>
+							<thead>
+								<tr>
+									<th scope="col">Date (UTC)</th>
+									<th scope="col">Opens</th>
+								</tr>
+							</thead>
+							<tbody>
+								{days.map((day) => (
+									<tr key={day.date}>
+										<th scope="row">{day.date}</th>
+										<td>{day.count}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</details>
+				</>
+			)}
+			{total === 0 && <p>No opens recorded in this period.</p>}
+			{hasDownloads && (
+				<p>
+					{metrics.sourceDownloads} source ZIP downloads ·{" "}
+					{metrics.releaseDownloads} release downloads
+				</p>
+			)}
 			<p className="share-activity__note">
 				Opens are not unique visitors; repeat opens and your own visits count.
 				Downloads count successful handoffs to GitHub, not completed transfers.
