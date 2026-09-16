@@ -1,4 +1,4 @@
-/* github unlisted - the VIEWER stylesheet. This is the one surface that
+/* OneLinkVault - the VIEWER stylesheet. This is the one surface that
    deliberately departs from the site language: the recipient's read-only
    file browser. It is ENTIRELY SELF-CONTAINED: the viewer route imports
    only this file, and no other route loads it. The site's global.css is
@@ -253,7 +253,7 @@ body[data-viewer-tree="open"] {
 	background: var(--gh-canvas);
 }
 
-/* "Private repo shared using Github-Unlisted by Rév" */
+/* OneLinkVault viewer attribution */
 .viewer-attrib {
 	font-size: var(--fs-caption);
 	color: var(--gh-fg-muted);

@@ -80,7 +80,7 @@ export async function GET(request: Request) {
 				Authorization: `Bearer ${token}`,
 				Accept: accept,
 				"X-GitHub-Api-Version": "2022-11-28",
-				"User-Agent": "github-unlisted",
+				"User-Agent": "onelinkvault",
 			},
 			redirect: "manual",
 		});

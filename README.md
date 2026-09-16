@@ -1,76 +1,106 @@
-# Unlisted Repo
+# OneLinkVault
 
-**Share a private GitHub repository as a read-only link — no collaborator invites, no GitHub account needed for the person you send it to.**
+OneLinkVault is a personal clone of [`revoconner/github-unlisted`](https://github.com/revoconner/github-unlisted), extensively modified to suit our purposes and needs. It turns a private GitHub repository into a revocable, read-only link that recipients can browse without a GitHub account or collaborator invitation.
 
-**IT'S COMPLETELY FREE**
+## What OneLinkVault does
 
-Live at **[github-unlisted.com](https://github-unlisted.com)**. 
+1. Sign in with GitHub and install the OneLinkVault GitHub App on selected repositories.
+2. Create a share link from the dashboard.
+3. Send the link to anyone who needs to review the code.
+4. Revoke the link at any time or give it an automatic expiration date.
 
-<img width="1920" height="auto" alt="image" src="https://github.com/user-attachments/assets/ac0d2c11-b338-43b1-ac55-37394abe6427" />
-
-
-<img width="2196" height="1178" alt="image" src="https://github.com/user-attachments/assets/041dbf7e-cdd1-459a-86e6-b654388bdfe6" />
-
-<details>
-  <summary> Phone View</summary>
-<img width="300" height="auto" alt="image" src="https://github.com/user-attachments/assets/31442188-71ed-4c6c-aadb-37bb311a5afd" />  
-</details>
-
-## What it is
-
-Sometimes you need to show someone a private repo — a client, a recruiter, a friend reviewing your work — without adding them as a collaborator or asking them to make a GitHub account. Unlisted Repo gives you a private link to a clean, read-only file browser for that repository. You stay in full control: access is granted and revoked by you, through GitHub.
-
-## How it works
-
-1. **Install** the app on GitHub and pick which repositories it may read.
-2. **Create a link** from your dashboard for any of those repos.
-3. **Share it.** Anyone with the link can browse the code in their browser — no sign-in, nothing to install.
-
-Done with it? Revoke the link in one click, or remove the repo's access in your GitHub settings. The link stops working immediately.
+The GitHub App has read-only access. A share link contains an opaque identifier rather than a GitHub credential.
 
 ## Features
 
-- **Multi configurations for privacy** Share a particular branch, default branch or show an option to your viewers to select from a dropdown of all available branches.
-- **Allow viewers to download or not** An option enables you to let users clone your repo (no commits or history, just files) from the branch you shared.
-- **Auto-revoke timer.** Optionally set a link to expire after a number of days, weeks, months, or years — or never.
-- **Share releases or not** Your choice, you can show releases and allow users to download the files from release. Or you can choose not to do so and they won't be able to see it (even if they typed `/releases` into the url)
-- **No account for recipients.** They just open the link and read.
-- **Full read-only file browser.** Folders, files, an expandable file tree, and a "find a file" search across the whole repo.
-- **Syntax highlighting** for code.
-- **One dashboard.** See every repo, which ones are shared, copy or revoke links, filter and search.
-- **Uninstall the app to remove your access at once** Grant or revoke access anytime from GitHub; revoking takes effect right away.
+- Read-only repository browser with a searchable, resizable file tree
+- Syntax highlighting with light and dark themes
+- Fast file navigation with bounded hover prefetching
+- Links locked to a selected branch or opened on the default branch
+- Optional branch switcher for recipients
+- Optional source archive downloads
+- Optional releases and release-asset downloads
+- Configurable link expiration and immediate revocation
+- Bot protection on the private repository data endpoint
+- Responsive desktop and mobile interfaces
+- Owner dashboard for creating, copying, configuring, and revoking links
 
-## Privacy
+## Privacy and data handling
 
-Your code is read on demand through GitHub's official app permissions and shown in the browser. Share links carry no passwords or tokens — only an opaque, single-purpose identifier tied to one repository. Nothing about your repository is stored on our side beyond the link mapping you create. Read [Privacy](https://www.github-unlisted.com/privacy) for the complete statement.
+OneLinkVault fetches repository content through GitHub's API only after validating a share link. Repository metadata, trees, and file contents may be held in bounded, process-local memory caches for up to five minutes to improve navigation. These caches are temporary and are not written to the OneLinkVault database.
 
-## Questions
+Upstash stores share-link configuration, including the GitHub installation, repository, optional branch restriction, permissions, creation time, and expiration. GitHub credentials remain server-side. Vercel Web Analytics provides anonymous, cookieless aggregate traffic measurements.
 
-See the [FAQ](https://github-unlisted.com/faq).
+See the deployed application's `/privacy` page for the complete policy.
 
-## Is it down?
+## Local development
 
-See the [Status](https://www.github-unlisted.com/status) page for ongoing maintenance or problems. 
+Requirements:
 
-Please note the page is updated manually.
+- Node.js 20.9 or newer
+- A GitHub App
+- An Upstash Redis database
+- A Vercel BotID configuration
 
-## AI use disclaimer
+Install dependencies and create your environment file:
 
-Parts of the website and app have been maade with AI - [Claude](Claude.ai) under strict manual review, guidelines and manual testing.
+```bash
+npm install
+cp .env.example .env.local
+```
 
-These parts include
-- UI responsive design
-- Parts of next.js development
-- Research and resource aggregation for practices for Github apps
-- Research and resource aggregation for upstash on vercel for database
-- Accessibility enhancement on web UI
-- Parts of user facing documents, texts etc for better readability
+Fill in the required values, then start the development server:
 
-**Use of AI in this project is higher than what I normally use, this is for two reasons**
-- I've been sick and unable to sit at my workstation. So I have been using ipad and RDP to remote into it. Delegating tasks under such condition was a necessity. 
-- Web apps aren't really my thing.
+```bash
+npm run dev
+```
 
+Open [http://localhost:3000](http://localhost:3000).
 
----
+## Environment variables
 
-Originally built for my personal use on my website·  [www.revoconner.com](https://www.revoconner.com)
+`.env.example` documents every supported variable. The core deployment values are:
+
+- `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_SITE_OWNER`, and `NEXT_PUBLIC_SOURCE_REPO_URL`
+- GitHub App ID, private key, client credentials, webhook secret, and public app slug
+- `SESSION_SECRET`
+- Upstash Redis REST URL and read-write token
+- Optional default share-link lifetime
+
+Never commit `.env.local` or GitHub App private keys.
+
+## Commands
+
+```bash
+npm run dev       # run Next.js locally
+npm run build     # create a production build
+npm test          # run the Vitest suite
+npm run check     # run Biome checks
+npm run format    # format the project with Biome
+```
+
+## Deployment
+
+The repository includes `vercel.json` for Vercel deployment. Configure all required environment variables in the Vercel project before deploying. Set `NEXT_PUBLIC_SITE_URL` to the production origin so canonical URLs, social metadata, the sitemap, and structured data do not point to localhost.
+
+Configure the GitHub App's callback, setup, and webhook URLs for the production domain:
+
+- `/api/github/callback`
+- `/api/github/setup`
+- `/api/github/webhook`
+
+## Security model
+
+- Repository access uses short-lived GitHub installation tokens.
+- Installation tokens and the GitHub App private key are never sent to recipients.
+- Share links are bearer links: anyone who possesses a valid link can use its permissions until it expires or is revoked.
+- The viewer endpoint validates the link on every request and uses Vercel BotID to reject automated access.
+- Removing repository access or uninstalling the GitHub App invalidates affected links.
+
+Report security concerns privately using the contact address listed in the privacy policy.
+
+## License
+
+OneLinkVault is distributed under the [GNU General Public License v3.0](LICENSE).
+
+This is a personal clone of [`revoconner/github-unlisted`](https://github.com/revoconner/github-unlisted), modified and maintained as OneLinkVault to suit our own workflow and requirements. The OneLinkVault source is maintained at [`oseni99/onevault`](https://github.com/oseni99/onevault).

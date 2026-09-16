@@ -65,7 +65,7 @@ export const viewport: Viewport = {
 	],
 };
 
-const themeBoot = `(()=>{try{const s=localStorage.getItem("sourcevault:theme");const t=s==="light"||s==="dark"?s:matchMedia("(prefers-color-scheme:light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch{document.documentElement.dataset.theme="dark"}})()`;
+const themeBoot = `(()=>{try{const s=localStorage.getItem("onelinkvault:theme")??localStorage.getItem("sourcevault:theme");const t=s==="light"||s==="dark"?s:matchMedia("(prefers-color-scheme:light)").matches?"light":"dark";document.documentElement.dataset.theme=t}catch{document.documentElement.dataset.theme="dark"}})()`;
 
 export default function RootLayout({
 	children,

@@ -4,68 +4,28 @@ import * as React from "react";
 
 const ITEMS: { q: string; a: React.ReactNode }[] = [
 	{
-		q: "How is it free?",
-		a: "I already pay for Vercel for my own personal website. I also needed a solution to share private GitHub repositories online, hence this was created. The extra cost for this is $20 per month for enhanced firewall on viewer's page so your shared repositories never gets scraped by bots, and the domain cost per year. It's not a lot, so I don't see the loss in it.",
+		q: "What is OneLinkVault?",
+		a: "OneLinkVault lets you share a private GitHub repository through a read-only link without making the repository public or adding the recipient as a collaborator.",
 	},
 	{
-		q: "How do you plan to monetize it?",
-		a: "I don't. It's a solution I built for my own use. It's not a business.",
+		q: "Can OneLinkVault access my private repositories?",
+		a: "Only the repositories you select when installing the GitHub App. Access is read-only, and repository contents are fetched from GitHub when needed rather than stored in the OneLinkVault database.",
 	},
 	{
-		q: "Can you see the private repos I share?",
-		a: "Honest answer: technically I could. Like any GitHub App (the same as Vercel, CodeRabbit, and others), the server holds the app key and fetches your repo from GitHub to display it, so the content passes through the server in plain form. There is no end-to-end encryption that would make this impossible. What protects you: the app is read-only and limited to the repos you choose, you can revoke it instantly in GitHub (it stops working immediately), nothing from your repo is ever stored (it is streamed live per request), share links carry no credentials and can be set to expire, and the whole project is open source so the behaviour is auditable. I do not read your repositories, but you are trusting that, the same as installing any third-party GitHub App.",
+		q: "Who can open a shared link?",
+		a: "Anyone who has the link can access the repository content and permissions you selected. Viewers do not need to sign in, so treat a shared link like a password and revoke it if it is exposed.",
 	},
 	{
-		q: "How long does a shared link last for?",
-		a: "However long you wish to share it for. You can set an expiration duration, or set it to never expire.",
+		q: "How long does a shared link last?",
+		a: "You can give a link an automatic expiration time or let it remain active until you revoke it from your dashboard. Removing the app's repository access also stops the link from working.",
 	},
 	{
-		q: "Do you track me or use analytics?",
-		a: "I use Vercel Web Analytics to see aggregate page views and where traffic comes from — purely so I know whether anyone is actually using this. It is cookieless, does not assign you a persistent identifier, and does not follow you across other sites. There is no third-party advertising or cross-site tracking on the site.",
-	},
-	{
-		q: "How do I uninstall the app?",
+		q: "Do you track visitors?",
 		a: (
 			<>
-				Uninstalling is done from GitHub, not from this site. Go to{" "}
-				<a
-					href="https://github.com/settings/installations"
-					target="_blank"
-					rel="noopener"
-				>
-					github.com/settings/installations
-				</a>{" "}
-				(or, for an organization, your org's Settings → Third-party Access →
-				GitHub Apps), find <em>Unlisted Repo</em>, click{" "}
-				<strong>Configure</strong>, scroll to the <em>Danger Zone</em>, and
-				choose <strong>Uninstall</strong>. The app loses access immediately, any
-				active share links stop working, and the associated share records are
-				purged. If you also want to remove the OAuth authorization, revoke it
-				under{" "}
-				<a
-					href="https://github.com/settings/apps/authorizations"
-					target="_blank"
-					rel="noopener"
-				>
-					Authorized GitHub Apps
-				</a>
-				.
-			</>
-		),
-	},
-	{
-		q: "What other projects have you made?",
-		a: (
-			<>
-				Most of my work relates to computer graphics, which you can read about
-				on{" "}
-				<a href="https://www.revoconner.com" target="_blank" rel="noopener">
-					www.revoconner.com
-				</a>
-				. <br />I also host another website for a photo recognition offline app{" "}
-				<a href="https://felicity-app.com" target="_blank" rel="noopener">
-					felicity-app.com
-				</a>
+				OneLinkVault uses cookieless Vercel Web Analytics for aggregate page
+				views and traffic sources. It does not use advertising or cross-site
+				tracking. See the <a href="/privacy">privacy policy</a> for details.
 			</>
 		),
 	},

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { ACCENT } from "@/lib/brand";
 
-// SourceVault mark: a compact lock inside the acid-lime brand tile.
+// OneLinkVault mark: a compact lock inside the acid-lime brand tile.
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 

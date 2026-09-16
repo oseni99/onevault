@@ -96,7 +96,7 @@ function ViewerShell({
 			<header className="topbar">
 				<span className="viewer-attrib">
 					<span className="footer-signal" /> Private repository shared with{" "}
-					<a href="/">SourceVault</a>
+					<a href="/">OneLinkVault</a>
 				</span>
 				<ThemeToggle />
 			</header>

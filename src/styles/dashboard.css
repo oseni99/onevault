@@ -1,4 +1,4 @@
-/* github unlisted - DASHBOARD stylesheet. Loaded by /app together with
+/* OneLinkVault - DASHBOARD stylesheet. Loaded by /app together with
    global.css, which supplies the tokens, reset, and chrome (topbar, nav,
    drawer, footer). Desktop-first by design; phone adaptation comes as a
    separate pass. Layout is a single column of rows: welcome, stats,

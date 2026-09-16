@@ -110,7 +110,7 @@ export function ogImage(title: string, subtitle: string) {
 					color: "#777b86",
 				}}
 			>
-				<span>sourcevault</span>
+				<span>onelinkvault</span>
 				<span>Private by default · open source</span>
 			</div>
 		</div>,

@@ -319,10 +319,10 @@ export function DashboardClient({
 	return (
 		<div className="page-shell">
 			<header className="topbar">
-				<a className="wordmark" href="/" aria-label="SourceVault home">
+				<a className="wordmark" href="/" aria-label="OneLinkVault home">
 					<span className="mark" aria-hidden="true">
 						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<title>SourceVault</title>
+							<title>OneLinkVault</title>
 							<line
 								x1="2"
 								y1="11"
@@ -355,7 +355,7 @@ export function DashboardClient({
 						</svg>
 					</span>
 					<span className="word">
-						<span className="pre">source</span>
+						<span className="pre">onelink</span>
 						<span className="post">vault</span>
 					</span>
 				</a>

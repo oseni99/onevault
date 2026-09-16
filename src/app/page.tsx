@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 function Wordmark() {
 	return (
-		<a className="wordmark" href="/" aria-label="SourceVault home">
+		<a className="wordmark" href="/" aria-label="OneLinkVault home">
 			<span className="mark" aria-hidden="true">
 				<svg width="18" height="18" viewBox="0 0 18 18" fill="none">
 					<path
@@ -21,7 +21,7 @@ function Wordmark() {
 				</svg>
 			</span>
 			<span className="word">
-				<span className="pre">source</span>
+				<span className="pre">onelink</span>
 				<span className="post">vault</span>
 			</span>
 		</a>
@@ -41,7 +41,7 @@ function ProductPreview() {
 					<i />
 					<i />
 				</div>
-				<span>sourcevault.dev/s/7fd2c</span>
+				<span>onelinkvault / shared repository</span>
 				<span className="preview-live">
 					<i /> read only
 				</span>

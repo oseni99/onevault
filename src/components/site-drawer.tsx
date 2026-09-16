@@ -2,13 +2,7 @@
 
 import * as React from "react";
 import { createPortal } from "react-dom";
-import { ContactButton } from "@/components/contact-button";
 import { NAV_ITEMS, type NavActive } from "@/lib/nav";
-import {
-	CURRENT_STATUS,
-	statusDotAriaLabel,
-	statusDotClass,
-} from "@/lib/site-status";
 
 interface Props {
 	signedIn: boolean;
@@ -89,22 +83,9 @@ export function SiteDrawer({ signedIn, active = null }: Props) {
 								aria-current={active === item.key ? "page" : undefined}
 							>
 								{item.label}
-								{item.dot && (
-									<>
-										{" "}
-										<span
-											className={`status-dot ${statusDotClass(CURRENT_STATUS)}`}
-											role="img"
-											aria-label={statusDotAriaLabel(CURRENT_STATUS)}
-										/>
-									</>
-								)}
 							</a>
 						),
 					)}
-					{/* Same Contact modal as the desktop nav pill; a drawer row
-					    here keeps the two menus identical. */}
-					<ContactButton className="drawer-contact" label="Contact" />
 					{signedIn ? (
 						<a href="/api/github/logout">Sign out</a>
 					) : (

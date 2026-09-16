@@ -5,7 +5,9 @@ import * as React from "react";
 type Theme = "light" | "dark";
 
 function preferredTheme(): Theme {
-	const saved = window.localStorage.getItem("sourcevault:theme");
+	const saved =
+		window.localStorage.getItem("onelinkvault:theme") ??
+		window.localStorage.getItem("sourcevault:theme");
 	if (saved === "light" || saved === "dark") return saved;
 	return window.matchMedia("(prefers-color-scheme: light)").matches
 		? "light"
@@ -29,7 +31,7 @@ export function ThemeToggle() {
 		const next: Theme =
 			document.documentElement.dataset.theme === "light" ? "dark" : "light";
 		document.documentElement.dataset.theme = next;
-		window.localStorage.setItem("sourcevault:theme", next);
+		window.localStorage.setItem("onelinkvault:theme", next);
 		setTheme(next);
 	};
 

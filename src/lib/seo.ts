@@ -6,20 +6,22 @@ import type { Metadata } from "next";
 
 export const SITE = {
 	url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-	name: "SourceVault",
+	name: "OneLinkVault",
 	// The root layout adds this suffix; pages pass the BARE title.
-	titleTemplate: "%s — SourceVault",
-	defaultTitle: "SourceVault — private code, shared on your terms",
+	titleTemplate: "%s — OneLinkVault",
+	defaultTitle: "OneLinkVault — private code, shared on your terms",
 	description:
 		"Share a private GitHub repository as a read-only browsable link. No collaborator invites, no GitHub account needed for the recipient — you keep full control through GitHub.",
 	locale: "en_US",
 	author: {
-		name: process.env.NEXT_PUBLIC_SITE_OWNER ?? "SourceVault",
+		name: process.env.NEXT_PUBLIC_SITE_OWNER ?? "OneLinkVault",
 		url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
 	},
 	repo:
 		process.env.NEXT_PUBLIC_SOURCE_REPO_URL ??
-		"https://github.com/revoconner/github-unlisted",
+		"https://github.com/oseni99/onevault",
+	contactEmail:
+		process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "kingosenitosin@gmail.com",
 } as const;
 
 export function absoluteUrl(path = "/"): string {

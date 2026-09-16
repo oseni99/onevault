@@ -3,7 +3,7 @@
 // items stay identical across platforms. Order here is the render order:
 // Home first, Dashboard second (signed-in only), then the static pages.
 
-export type NavKey = "home" | "dashboard" | "faq" | "privacy" | "status";
+export type NavKey = "home" | "dashboard" | "faq" | "privacy";
 export type NavActive = NavKey | null;
 
 export interface NavItem {
@@ -12,8 +12,6 @@ export interface NavItem {
 	href: string;
 	// Only render when a session exists (the owner is signed in).
 	signedInOnly?: boolean;
-	// Render the operational-status indicator dot after the label.
-	dot?: boolean;
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -21,5 +19,4 @@ export const NAV_ITEMS: NavItem[] = [
 	{ key: "dashboard", label: "Dashboard", href: "/app", signedInOnly: true },
 	{ key: "faq", label: "FAQ", href: "/faq" },
 	{ key: "privacy", label: "Privacy", href: "/privacy" },
-	{ key: "status", label: "Status", href: "/status", dot: true },
 ];

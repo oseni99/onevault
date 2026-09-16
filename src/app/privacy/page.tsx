@@ -3,7 +3,7 @@ import { JsonLd } from "@/components/json-ld";
 import { NavLinks } from "@/components/nav-links";
 import { SiteDrawer } from "@/components/site-drawer";
 import { SiteFooter } from "@/components/site-footer";
-import { breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { breadcrumbLd, pageMetadata, SITE } from "@/lib/seo";
 import { getSession } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export const metadata = pageMetadata({
 	title: "Privacy Policy",
 	description:
-		"How Unlisted Repo collects, processes, and retains data, the third parties involved, and your rights. The operator does not access user repository content.",
+		"How OneLinkVault processes and retains data, which service providers are involved, and what choices users have.",
 	path: "/privacy",
 });
 
@@ -21,10 +21,10 @@ export default async function PrivacyPage() {
 	return (
 		<div className="page-shell">
 			<header className="topbar">
-				<a className="wordmark" href="/" aria-label="SourceVault home">
+				<a className="wordmark" href="/" aria-label="OneLinkVault home">
 					<span className="mark" aria-hidden="true">
 						<svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-							<title>SourceVault</title>
+							<title>OneLinkVault</title>
 							<line
 								x1="2"
 								y1="11"
@@ -57,7 +57,7 @@ export default async function PrivacyPage() {
 						</svg>
 					</span>
 					<span className="word">
-						<span className="pre">source</span>
+						<span className="pre">onelink</span>
 						<span className="post">vault</span>
 					</span>
 				</a>
@@ -80,16 +80,13 @@ export default async function PrivacyPage() {
 			<main className="legal-content">
 				<div className="legal-content__inner legal">
 					<h1>Privacy Policy</h1>
-					<p className="legal-updated">Last updated: 22 May 2026</p>
+					<p className="legal-updated">Last updated: 15 September 2026</p>
 
 					<p>
-						This Privacy Policy explains how the Unlisted Repo service ("the
+						This Privacy Policy explains how the OneLinkVault service ("the
 						Service", "we", "us") collects, uses, retains, and discloses
-						information when you use{" "}
-						<a href="https://www.github-unlisted.com">
-							www.github-unlisted.com
-						</a>
-						. The Service is operated by Rév ("the Operator"). By using the
+						information when you use <a href="/">this website</a>. The Service
+						is operated by Oluwatosin Oseni ("the Operator"). By using the
 						Service you agree to the practices described below.
 					</p>
 
@@ -98,15 +95,9 @@ export default async function PrivacyPage() {
 						The data controller for the purposes of the EU and UK General Data
 						Protection Regulation (GDPR) is the Operator. For any privacy
 						enquiry, or to exercise the rights set out in this policy, contact:{" "}
-						<a href="mailto:github-unlisted@revoconner.com">
-							github-unlisted@revoconner.com
-						</a>
-						. The source code is publicly available at the{" "}
-						<a
-							href="https://github.com/revoconner/github-unlisted"
-							target="_blank"
-							rel="noopener"
-						>
+						<a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>. The
+						source code is publicly available at the{" "}
+						<a href={SITE.repo} target="_blank" rel="noopener">
 							project repository
 						</a>
 						.
@@ -118,11 +109,12 @@ export default async function PrivacyPage() {
 						repository as a read-only link. The Operator does not, in the
 						ordinary course of operating the Service, access the contents of
 						your repositories. Repository content is retrieved from GitHub on
-						demand and rendered to the viewer. It is not stored, cached, or
-						logged by the Service. As with any GitHub App, the Service is
-						technically capable of reading the repositories you grant it; the
-						Operator does not exercise that capability, and you can revoke
-						access at any time through GitHub.
+						demand and rendered to the viewer. It may be kept in bounded,
+						process-local memory caches for up to five minutes, but is not
+						written to the Service database or intentionally logged. As with any
+						GitHub App, the Service is technically capable of reading the
+						repositories you grant it; the Operator does not exercise that
+						capability, and you can revoke access at any time through GitHub.
 					</p>
 
 					<h2>3. Information We Collect</h2>
@@ -154,9 +146,12 @@ export default async function PrivacyPage() {
 							repositories are short-lived and never sent to the browser.
 						</li>
 						<li>
-							<strong>Repository content.</strong> Not collected. It is fetched
-							live from GitHub for each request and streamed to the viewer. It
-							is not stored, cached, or logged by the Service.
+							<strong>Repository content.</strong> It is fetched from GitHub
+							when a valid share is opened. Metadata, trees, and file contents
+							may be held in bounded server-memory caches for up to five minutes
+							to reduce repeated GitHub requests. This content is not written to
+							the OneLinkVault database or intentionally included in application
+							logs.
 						</li>
 						<li>
 							<strong>Operational data.</strong> Our infrastructure providers
@@ -166,11 +161,12 @@ export default async function PrivacyPage() {
 						</li>
 						<li>
 							<strong>Aggregate analytics.</strong> We use Vercel Web Analytics
-							to measure aggregate page views and traffic sources so we can
-							understand overall usage of the Service. It is cookieless, does
-							not assign you a persistent identifier, and does not track you
-							across other sites. We do not operate any advertising or
-							cross-site tracking technologies.
+							to measure aggregate page views and traffic sources. Analytics may
+							include the visited page path, referrer, approximate location,
+							device type, operating system, and browser. It is cookieless, does
+							not assign a persistent identifier, and does not track visitors
+							across other sites. We do not operate advertising or cross-site
+							tracking technologies.
 						</li>
 					</ul>
 
@@ -250,7 +246,11 @@ export default async function PrivacyPage() {
 							or repository access is removed, at which point associated records
 							are purged.
 						</li>
-						<li>Repository content is never retained.</li>
+						<li>
+							Repository metadata, trees, and file contents expire from
+							process-local caches after no more than five minutes and may
+							disappear sooner when a server process ends.
+						</li>
 					</ul>
 
 					<h2>9. International Transfers</h2>
@@ -278,10 +278,7 @@ export default async function PrivacyPage() {
 						repository access, or uninstall the GitHub App, from your GitHub
 						settings. Revocation takes effect at once. For any other request,
 						contact{" "}
-						<a href="mailto:github-unlisted@revoconner.com">
-							github-unlisted@revoconner.com
-						</a>
-						.
+						<a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>.
 					</p>
 
 					<h2>11. Security</h2>
@@ -312,15 +309,9 @@ export default async function PrivacyPage() {
 					<p>
 						Questions about this policy or our handling of your information can
 						be sent to{" "}
-						<a href="mailto:github-unlisted@revoconner.com">
-							github-unlisted@revoconner.com
-						</a>
-						, or raised on the{" "}
-						<a
-							href="https://github.com/revoconner/github-unlisted"
-							target="_blank"
-							rel="noopener"
-						>
+						<a href={`mailto:${SITE.contactEmail}`}>{SITE.contactEmail}</a>, or
+						raised on the{" "}
+						<a href={SITE.repo} target="_blank" rel="noopener">
 							project repository
 						</a>
 						.
