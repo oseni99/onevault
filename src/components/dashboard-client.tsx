@@ -45,10 +45,11 @@ const UNIT_SECONDS: Record<Exclude<Unit, "never">, number> = {
 
 interface TtlSel {
 	amount: number;
-	unit: Unit;
+	unit: Unit | "keep";
 }
 
-function ttlFor(sel: TtlSel): number | null {
+function ttlFor(sel: TtlSel): number | null | undefined {
+	if (sel.unit === "keep") return undefined;
 	if (sel.unit === "never") return null;
 	return Math.max(1, Math.floor(sel.amount)) * UNIT_SECONDS[sel.unit];
 }
@@ -226,7 +227,17 @@ export function DashboardClient({
 	// Panel control values fall back to what is stored on the share, so an
 	// existing link shows its real settings before the user touches anything.
 	const key = selRepo?.fullName ?? "";
-	const ttl = ttlSel[key] ?? { amount: 1, unit: "never" as Unit };
+	const ttlKey = selShare?.id ?? key;
+	const ttl = ttlSel[ttlKey] ?? {
+		amount: 1,
+		unit: selShare ? ("keep" as const) : ("never" as const),
+	};
+	const clearTtlDraft = () =>
+		setTtlSel((previous) => {
+			const next = { ...previous };
+			delete next[ttlKey];
+			return next;
+		});
 	const dl = dlSel[key] ?? selShare?.allowDownload ?? false;
 	const rel = relSel[key] ?? selShare?.showReleases ?? false;
 	const sw = swSel[key] ?? selShare?.showBranches ?? false;
@@ -260,6 +271,7 @@ export function DashboardClient({
 				await failure(res, "Could not create the link");
 				return;
 			}
+			clearTtlDraft();
 			router.refresh();
 		} catch {
 			setError("Could not create the link");
@@ -268,10 +280,8 @@ export function DashboardClient({
 		}
 	};
 
-	// One "Set" applies every panel control. ttlSeconds is always sent, so
-	// pressing Set restarts the auto-revoke window even when only a toggle
-	// changed. The stored branch lock (ref) is preserved as-is: the panel
-	// has no control for it anymore.
+	// Omit ttlSeconds unless the owner changes expiration explicitly. Clear the
+	// saved draft so later settings updates cannot restart the expiration window.
 	const applySettings = async (s: Share) => {
 		setBusy(true);
 		setError(null);
@@ -292,6 +302,7 @@ export function DashboardClient({
 				await failure(res, "Could not update the link");
 				return;
 			}
+			clearTtlDraft();
 			router.refresh();
 		} catch {
 			setError("Could not update the link");
@@ -579,11 +590,13 @@ export function DashboardClient({
 											className="ttl__num"
 											aria-label="Auto-revoke amount"
 											value={ttl.amount}
-											disabled={busy || ttl.unit === "never"}
+											disabled={
+												busy || ttl.unit === "never" || ttl.unit === "keep"
+											}
 											onChange={(e) =>
 												setTtlSel((p) => ({
 													...p,
-													[key]: {
+													[ttlKey]: {
 														...ttl,
 														amount: Math.max(
 															1,
@@ -601,10 +614,16 @@ export function DashboardClient({
 											onChange={(e) =>
 												setTtlSel((p) => ({
 													...p,
-													[key]: { ...ttl, unit: e.target.value as Unit },
+													[ttlKey]: {
+														...ttl,
+														unit: e.target.value as TtlSel["unit"],
+													},
 												}))
 											}
 										>
+											{selShare && (
+												<option value="keep">keep current expiry</option>
+											)}
 											<option value="days">days</option>
 											<option value="weeks">weeks</option>
 											<option value="months">months</option>
@@ -614,6 +633,19 @@ export function DashboardClient({
 									</span>
 								</div>
 							</div>
+							{selShare && (
+								<p className="dash-panel__hint">
+									Current auto-revoke:{" "}
+									{selShare.expiresAt ? (
+										<time dateTime={new Date(selShare.expiresAt).toISOString()}>
+											{new Date(selShare.expiresAt).toLocaleString()}
+										</time>
+									) : (
+										"never"
+									)}
+									.
+								</p>
+							)}
 							<div className="dash-panel__actions">
 								{selShare && !selShare.shareUsername && (
 									<p>
