@@ -1,6 +1,13 @@
 # OneLinkVault
 
-OneLinkVault is a personal clone of [`revoconner/github-unlisted`](https://github.com/revoconner/github-unlisted), extensively modified to suit our purposes and needs. It turns a private GitHub repository into a revocable, read-only link that recipients can browse without a GitHub account or collaborator invitation.
+OneLinkVault lets you share a private GitHub repository through a revocable, read-only link. Recipients can browse the code without a GitHub account or collaborator invitation.
+
+## Changes from the original
+
+- Added personal share URLs, link activity charts, and download counts.
+- Improved file navigation, added a resizable sidebar and theme switching, and fixed expiration updates.
+- Removed the contact form, Resend integration, and manual status page.
+- Replaced the original branding and old share URL format.
 
 ## What OneLinkVault does
 
@@ -16,7 +23,7 @@ The GitHub App has read-only access. A share link contains an opaque identifier 
 - Read-only repository browser with a searchable, resizable file tree
 - Syntax highlighting with light and dark themes
 - Fast file navigation with bounded hover prefetching
-- Links locked to a selected branch or opened on the default branch
+- Default-branch browsing, with support for branch restrictions configured through the share API
 - Optional branch switcher for recipients
 - Optional source archive downloads
 - Optional releases and release-asset downloads
@@ -32,7 +39,7 @@ The GitHub App has read-only access. A share link contains an opaque identifier 
 
 OneLinkVault fetches repository content through GitHub's API only after validating a share link. Repository metadata, trees, and file contents may be held in bounded, process-local memory caches for up to five minutes to improve navigation. These caches are temporary and are not written to the OneLinkVault database.
 
-Upstash stores share-link configuration, including the GitHub installation, repository, optional branch restriction, permissions, creation time, and expiration. GitHub credentials remain server-side. Vercel Web Analytics provides anonymous, cookieless aggregate traffic measurements.
+Upstash stores share-link configuration, including the creator's GitHub username, GitHub installation, repository, optional branch restriction, permissions, creation time, and expiration. It also stores aggregate open and download counts, the last-opened time, and up to 30 days of daily open totals. These link metrics do not store viewer IP addresses, user agents, or visitor identifiers. GitHub credentials remain server-side. Vercel Web Analytics provides anonymous, cookieless aggregate traffic measurements.
 
 See the deployed application's `/privacy` page for the complete policy.
 
@@ -70,7 +77,6 @@ Open [http://localhost:3000](http://localhost:3000).
 - Upstash Redis REST URL and read-write token
 - Optional default share-link lifetime
 
-Never commit `.env.local` or GitHub App private keys.
 
 ## Commands
 
@@ -106,4 +112,4 @@ Report security concerns privately using the contact address listed in the priva
 
 OneLinkVault is distributed under the [GNU General Public License v3.0](LICENSE).
 
-This is a personal clone of [`revoconner/github-unlisted`](https://github.com/revoconner/github-unlisted), modified and maintained as OneLinkVault to suit our own workflow and requirements. The OneLinkVault source is maintained at [`oseni99/onevault`](https://github.com/oseni99/onevault).
+Original project: [`revoconner/github-unlisted`](https://github.com/revoconner/github-unlisted) by Rév O'Conner. Personal modifications: [`oseni99/onevault`](https://github.com/oseni99/onevault) by Oluwatosin Oseni. The original license is retained.
