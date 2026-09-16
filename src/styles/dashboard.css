@@ -65,6 +65,67 @@
 }
 
 /* ----- Row 2: stats ------------------------------------------------ */
+.share-activity {
+	padding: 20px;
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	background: var(--surface);
+}
+.share-activity__header,
+.share-activity__dates {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+.share-activity h2 {
+	font-size: var(--fs-body);
+	overflow-wrap: anywhere;
+}
+.share-activity select {
+	padding: 6px;
+	color: var(--text);
+	background: var(--bg);
+	border: 1px solid var(--border);
+	border-radius: 6px;
+}
+.share-activity__chart {
+	display: flex;
+	height: 130px;
+	gap: 4px;
+	border-bottom: 1px solid var(--border);
+	margin-top: 20px;
+}
+.share-activity__column {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	min-width: 0;
+}
+.share-activity__bar {
+	background: var(--accent);
+	border-radius: 3px 3px 0 0;
+}
+.share-activity__dates,
+.share-activity__note {
+	color: var(--text-2);
+	font-size: var(--fs-caption);
+	line-height: 1.6;
+}
+.share-activity table {
+	width: 100%;
+	text-align: left;
+	margin-top: 12px;
+}
+.share-activity details {
+	margin: 12px 0;
+}
+.share-activity summary {
+	cursor: pointer;
+}
+
 .dash-stats {
 	display: flex;
 	flex-wrap: wrap;

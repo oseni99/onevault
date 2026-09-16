@@ -31,6 +31,7 @@ export type ViewerPayload =
 	| { kind: "redirect"; href: string }
 	| {
 			kind: "releases";
+			shareUsername: string;
 			fullName: string;
 			refName: string;
 			owner: string;
@@ -40,6 +41,7 @@ export type ViewerPayload =
 	  }
 	| {
 			kind: "view";
+			shareUsername: string;
 			fullName: string;
 			refName: string;
 			owner: string;
@@ -158,14 +160,11 @@ export async function resolveViewer(
 	slug: string[],
 	shareId: string,
 ): Promise<ViewerPayload> {
-	const parsed = parseView(slug);
-	if (!parsed) return { kind: "notice", title: "Not found" };
-
-	if (!shareId) {
+	if (!shareId || slug[1] !== shareId || !/^[A-Za-z0-9_-]{22}$/.test(shareId)) {
 		return {
 			kind: "notice",
 			title: "A share link is required",
-			detail: "Open a link created from the dashboard (it includes ?s=…).",
+			detail: "Open a new username/code link created from the dashboard.",
 		};
 	}
 
@@ -177,12 +176,17 @@ export async function resolveViewer(
 			detail: "This share link no longer works. Ask the owner for a new one.",
 		};
 	}
-	if (target.owner !== parsed.owner || target.repo !== parsed.repo) {
+	if (
+		!target.shareUsername ||
+		target.shareUsername.toLowerCase() !== slug[0]?.toLowerCase()
+	) {
 		return {
 			kind: "notice",
 			title: "This link does not match this repository",
 		};
 	}
+	const parsed = parseView([target.owner, target.repo, ...slug.slice(2)]);
+	if (!parsed) return { kind: "notice", title: "Not found" };
 
 	const isReleases = parsed.viewType === "releases";
 	if (isReleases && target.showReleases !== true) {
@@ -236,7 +240,7 @@ export async function resolveViewer(
 		return {
 			kind: "redirect",
 			href: buildHref(
-				target.owner,
+				target.shareUsername,
 				target.repo,
 				parsed.viewType,
 				redirectRef,
@@ -257,6 +261,7 @@ export async function resolveViewer(
 
 		return {
 			kind: "releases",
+			shareUsername: target.shareUsername,
 			fullName: meta.fullName,
 			refName: ref,
 			owner: target.owner,
@@ -281,7 +286,7 @@ export async function resolveViewer(
 			return {
 				kind: "redirect",
 				href: buildHref(
-					target.owner,
+					target.shareUsername,
 					target.repo,
 					"blob",
 					ref,
@@ -330,6 +335,7 @@ export async function resolveViewer(
 
 	return {
 		kind: "view",
+		shareUsername: target.shareUsername,
 		fullName: meta.fullName,
 		refName: ref,
 		owner: target.owner,

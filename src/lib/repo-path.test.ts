@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
 	buildHref,
+	buildReleasesHref,
+	buildShareHref,
 	parseView,
 	resolveRef,
 	splitRefFromBranches,
@@ -242,19 +244,42 @@ describe("splitRefFromBranches", () => {
 describe("buildHref", () => {
 	it("builds a root href without a path", () => {
 		expect(buildHref("o", "r", "tree", "main", "", "abc")).toBe(
-			"/o/r/tree/main?s=abc",
+			"/o/abc/tree/main",
 		);
 	});
 
 	it("builds a path href", () => {
 		expect(buildHref("o", "r", "blob", "main", "src/a.ts", "abc")).toBe(
-			"/o/r/blob/main/src/a.ts?s=abc",
+			"/o/abc/blob/main/src/a.ts",
 		);
 	});
 
 	it("encodes the share id", () => {
 		expect(buildHref("o", "r", "tree", "main", "", "a/b c")).toBe(
-			"/o/r/tree/main?s=a%2Fb%20c",
+			"/o/a%2Fb%20c/tree/main",
 		);
+	});
+});
+
+describe("personal share URLs", () => {
+	it("uses the sharing username and code without a repository or query string", () => {
+		expect(buildShareHref("oseni99", "K7mQ2xV9pR4nT8wB123456")).toBe(
+			"/oseni99/K7mQ2xV9pR4nT8wB123456",
+		);
+		expect(buildReleasesHref("oseni99", "private-repo", "code")).toBe(
+			"/oseni99/code/releases",
+		);
+	});
+	it("encodes file names while preserving slash-separated branches", () => {
+		expect(
+			buildHref(
+				"oseni99",
+				"repo",
+				"blob",
+				"feature/new",
+				"docs/a #1.md",
+				"code",
+			),
+		).toBe("/oseni99/code/blob/feature/new/docs/a%20%231.md");
 	});
 });

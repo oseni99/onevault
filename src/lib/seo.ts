@@ -20,8 +20,7 @@ export const SITE = {
 	repo:
 		process.env.NEXT_PUBLIC_SOURCE_REPO_URL ??
 		"https://github.com/oseni99/onevault",
-	contactEmail:
-		process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "kingosenitosin@gmail.com",
+	contactEmail: "kingosenitosin@gmail.com",
 } as const;
 
 export function absoluteUrl(path = "/"): string {

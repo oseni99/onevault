@@ -31,6 +31,35 @@ describe("viewer client cache", () => {
 		vi.resetModules();
 	});
 
+	it("sends the view-tracking flag only with bootstrap requests", async () => {
+		const fetchMock = vi.fn(
+			async (_input: RequestInfo | URL, _init?: RequestInit) => ({
+				ok: true,
+				status: 200,
+				json: async () => pathPayload,
+			}),
+		);
+		vi.stubGlobal("fetch", fetchMock);
+		const { loadViewerRequest } = await import("./viewer-client-cache");
+
+		await loadViewerRequest({
+			operation: "bootstrap",
+			slug: ["owner", "repo"],
+			shareId: "share-bootstrap",
+			trackView: true,
+		});
+		await loadViewerRequest(pathRequest);
+
+		expect(JSON.parse(fetchMock.mock.calls[0]?.[1]?.body as string)).toEqual({
+			slug: ["owner", "repo"],
+			shareId: "share-bootstrap",
+			trackView: true,
+		});
+		expect(JSON.parse(fetchMock.mock.calls[1]?.[1]?.body as string)).toEqual(
+			pathRequest,
+		);
+	});
+
 	it("coalesces a prefetch and navigation for the same path", async () => {
 		const fetchMock = vi.fn(async () => ({
 			ok: true,
@@ -107,6 +136,7 @@ describe("viewer client cache", () => {
 			await import("./viewer-client-cache");
 		const payload = {
 			kind: "view" as const,
+			shareUsername: "owner",
 			fullName: "owner/repo",
 			refName: "main",
 			owner: "owner",

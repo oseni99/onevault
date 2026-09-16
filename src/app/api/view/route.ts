@@ -1,5 +1,6 @@
 import { checkBotId } from "botid/server";
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
+import { recordShareView } from "@/lib/share-store";
 import {
 	resolveViewer,
 	resolveViewerPath,
@@ -41,6 +42,7 @@ export async function POST(request: Request): Promise<NextResponse> {
 		repo?: unknown;
 		ref?: unknown;
 		path?: unknown;
+		trackView?: unknown;
 	};
 	const shareId = typeof record.shareId === "string" ? record.shareId : "";
 	if (record.operation === "path") {
@@ -73,6 +75,18 @@ export async function POST(request: Request): Promise<NextResponse> {
 
 	try {
 		const payload = await resolveViewer(slug, shareId);
+		if (
+			record.trackView === true &&
+			(payload.kind === "view" || payload.kind === "releases")
+		) {
+			after(async () => {
+				try {
+					await recordShareView(shareId);
+				} catch (error) {
+					console.error("share view tracking failed", error);
+				}
+			});
+		}
 		return NextResponse.json(payload);
 	} catch (err) {
 		// The old server component let unexpected throws bubble to Next's error

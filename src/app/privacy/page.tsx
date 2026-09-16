@@ -134,9 +134,12 @@ export default async function PrivacyPage() {
 							<strong>Share configuration.</strong> When you create a share
 							link, we store a record containing the GitHub installation
 							identifier, the repository owner and name, a creation timestamp,
-							and an optional expiry. Each link is identified by a random,
-							opaque identifier. No repository content and no access credentials
-							are stored.
+							an optional expiry, its aggregate open and download counts, daily
+							open totals for the last 30 days, and the time it was last opened.
+							Each link is identified by a random, opaque identifier. We do not
+							store viewer IP addresses, user agents, or visitor identifiers
+							with these link metrics. No repository content and no access
+							credentials are stored.
 						</li>
 						<li>
 							<strong>Authentication tokens.</strong> During sign-in, a
@@ -244,7 +247,7 @@ export default async function PrivacyPage() {
 							A share-link record is retained until you revoke the link, the
 							link reaches the expiry you set, or the GitHub App is uninstalled
 							or repository access is removed, at which point associated records
-							are purged.
+							and aggregate link metrics are purged.
 						</li>
 						<li>
 							Repository metadata, trees, and file contents expire from

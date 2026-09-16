@@ -3,9 +3,12 @@
 import { useRouter } from "next/navigation";
 import * as React from "react";
 import { NavLinks } from "@/components/nav-links";
+import { ShareActivity } from "@/components/share-activity";
 import { SiteDrawer } from "@/components/site-drawer";
 import { SiteFooter } from "@/components/site-footer";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { buildShareHref } from "@/lib/repo-path";
+import type { ShareMetrics } from "@/lib/share-metrics";
 
 interface Repo {
 	installationId: number;
@@ -14,7 +17,8 @@ interface Repo {
 	fullName: string;
 	private: boolean;
 }
-interface Share {
+interface Share extends ShareMetrics {
+	shareUsername?: string;
 	id: string;
 	owner: string;
 	repo: string;
@@ -171,6 +175,7 @@ export function DashboardClient({
 	login: string;
 }) {
 	const router = useRouter();
+	const [refreshing, startRefresh] = React.useTransition();
 	const [query, setQuery] = React.useState("");
 	// Spec defaults: visibility starts on "private" (the repos people
 	// actually share), the share filter starts wide open.
@@ -310,7 +315,7 @@ export function DashboardClient({
 	};
 
 	const copy = async (s: Share) => {
-		const url = `${window.location.origin}/${s.owner}/${s.repo}?s=${s.id}`;
+		const url = `${window.location.origin}${buildShareHref(s.shareUsername ?? login, s.id)}`;
 		await navigator.clipboard.writeText(url);
 		setCopied(true);
 		setTimeout(() => setCopied(false), 1500);
@@ -376,6 +381,14 @@ export function DashboardClient({
 				<section className="dash-welcome">
 					<p className="dash-welcome__hi">Welcome,</p>
 					<h1 className="dash-welcome__name">{login}</h1>
+					<button
+						type="button"
+						className="btn btn--ghost btn--sm"
+						disabled={refreshing}
+						onClick={() => startRefresh(() => router.refresh())}
+					>
+						{refreshing ? "Refreshing…" : "Refresh activity"}
+					</button>
 				</section>
 
 				{/* Row 2: stats */}
@@ -403,6 +416,12 @@ export function DashboardClient({
 						</span>
 					</div>
 				</section>
+
+				<p className="share-activity__note">
+					Select a shared repository to see daily opens and downloads. Opens
+					include repeat visits, including your own.
+				</p>
+				{selShare && <ShareActivity metrics={selShare} name={selected ?? ""} />}
 
 				{/* Row 3: search + the two filter toggles */}
 				<section className="dash-filters">
@@ -480,6 +499,14 @@ export function DashboardClient({
 								<span className="repo-card__state">
 									{share ? (
 										<span className="repo-card__meta">
+											<span>
+												{share.viewCount === 1
+													? "1 open"
+													: `${share.viewCount} opens`}
+												{share.lastViewedAt
+													? ` · last ${ago(share.lastViewedAt)}`
+													: " · never opened"}
+											</span>
 											{share.createdAt && (
 												<span>created {ago(share.createdAt)}</span>
 											)}
@@ -588,6 +615,12 @@ export function DashboardClient({
 								</div>
 							</div>
 							<div className="dash-panel__actions">
+								{selShare && !selShare.shareUsername && (
+									<p>
+										This link uses the old format. Revoke it, then share again
+										to create your username/code link.
+									</p>
+								)}
 								{selShare ? (
 									<>
 										<button
@@ -609,18 +642,24 @@ export function DashboardClient({
 										<button
 											type="button"
 											className="dash-btn"
+											disabled={!selShare.shareUsername}
 											onClick={() => copy(selShare)}
 										>
 											{copied ? "Copied" : "Copy Link"}
 										</button>
-										<a
-											className="dash-btn"
-											href={`/${selRepo.owner}/${selRepo.name}?s=${selShare.id}`}
-											target="_blank"
-											rel="noopener"
-										>
-											Visit
-										</a>
+										{selShare.shareUsername && (
+											<a
+												className="dash-btn"
+												href={buildShareHref(
+													selShare.shareUsername ?? login,
+													selShare.id,
+												)}
+												target="_blank"
+												rel="noopener"
+											>
+												Visit
+											</a>
+										)}
 									</>
 								) : (
 									<button

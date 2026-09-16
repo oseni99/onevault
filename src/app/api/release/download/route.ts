@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getInstallationOctokit, getInstallationToken } from "@/lib/github-app";
 import { listReleases } from "@/lib/github-repo";
-import { resolveShare } from "@/lib/share-store";
+import { recordShareDownload, resolveShare } from "@/lib/share-store";
 
 // Never cache: the URL this hands back is signed and expires within minutes.
 export const dynamic = "force-dynamic";
@@ -84,7 +84,8 @@ export async function GET(request: Request) {
 			},
 			redirect: "manual",
 		});
-		location = res.headers.get("location");
+		if (res.status >= 300 && res.status < 400)
+			location = res.headers.get("location");
 	} catch {
 		return NextResponse.json(
 			{ error: "Download unavailable" },
@@ -100,6 +101,13 @@ export async function GET(request: Request) {
 	}
 
 	const out = NextResponse.redirect(location, 302);
+	after(async () => {
+		try {
+			await recordShareDownload(shareId, "release");
+		} catch (error) {
+			console.error("download tracking failed", error);
+		}
+	});
 	out.headers.set("Cache-Control", "no-store");
 	return out;
 }

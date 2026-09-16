@@ -10,7 +10,8 @@ export interface ParsedView {
 	path: string;
 }
 
-// URL shape: /{owner}/{repo}[/{tree|blob}/{ref}/{...path}] or /{owner}/{repo}/releases
+// Parse internal repository coordinates after the username/code has been
+// resolved to its stored owner/repo. The remaining segments describe the view.
 export function parseView(slug: string[]): ParsedView | null {
 	const seg = slug.filter(Boolean);
 	if (seg.length < 2) return null;
@@ -34,10 +35,14 @@ export function parseView(slug: string[]): ParsedView | null {
 
 export function buildReleasesHref(
 	owner: string,
-	repo: string,
+	_repo: string,
 	shareId: string,
 ): string {
-	return `/${owner}/${repo}/releases?s=${encodeURIComponent(shareId)}`;
+	return `${buildShareHref(owner, shareId)}/releases`;
+}
+
+export function buildShareHref(username: string, code: string): string {
+	return `/${encodeURIComponent(username)}/${encodeURIComponent(code)}`;
 }
 
 export interface RefResolution {
@@ -102,14 +107,14 @@ export function splitRefFromBranches(
 
 export function buildHref(
 	owner: string,
-	repo: string,
+	_repo: string,
 	viewType: FileViewType,
 	ref: string,
 	path: string,
 	shareId: string,
 ): string {
-	const base = path
-		? `/${owner}/${repo}/${viewType}/${ref}/${path}`
-		: `/${owner}/${repo}/${viewType}/${ref}`;
-	return `${base}?s=${encodeURIComponent(shareId)}`;
+	const location = [ref, ...(path ? [path] : [])]
+		.map((part) => part.split("/").map(encodeURIComponent).join("/"))
+		.join("/");
+	return `${buildShareHref(owner, shareId)}/${viewType}/${location}`;
 }

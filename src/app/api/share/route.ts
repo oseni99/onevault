@@ -4,6 +4,7 @@ import {
 	listInstallationRepos,
 } from "@/lib/github-app";
 import { listBranches } from "@/lib/github-repo";
+import { buildShareHref } from "@/lib/repo-path";
 import { getSession } from "@/lib/session";
 import {
 	createShare,
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
 	const id = await createShare(
 		{
 			installationId,
+			shareUsername: session.login,
 			owner,
 			repo,
 			ref: parsedRef.ref ?? undefined,
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
 	const origin = new URL(request.url).origin;
 	return NextResponse.json({
 		id,
-		url: `${origin}/${owner}/${repo}?s=${id}`,
+		url: `${origin}${buildShareHref(session.login, id)}`,
 	});
 }
 

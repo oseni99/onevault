@@ -18,14 +18,11 @@ export const metadata = pageMetadata({
 // real recipients would be blocked on their first visit alongside the bots.
 export default async function ViewPage({
 	params,
-	searchParams,
 }: {
 	params: Promise<{ slug?: string[] }>;
-	searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
 	const { slug = [] } = await params;
-	const sp = await searchParams;
-	const shareId = typeof sp.s === "string" ? sp.s : "";
+	const shareId = slug[1] ?? "";
 
 	return <ViewerContent slug={slug} shareId={shareId} />;
 }

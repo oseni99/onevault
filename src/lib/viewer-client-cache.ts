@@ -1,7 +1,12 @@
 import type { ViewerPathPayload, ViewerPayload } from "@/lib/viewer-data";
 
 export type ViewerRequest =
-	| { operation: "bootstrap"; slug: string[]; shareId: string }
+	| {
+			operation: "bootstrap";
+			slug: string[];
+			shareId: string;
+			trackView?: boolean;
+	  }
 	| {
 			operation: "path";
 			shareId: string;
@@ -64,7 +69,11 @@ function requestKey(request: ViewerRequest): string {
 
 function requestBody(request: ViewerRequest): Record<string, unknown> {
 	if (request.operation === "bootstrap") {
-		return { slug: request.slug, shareId: request.shareId };
+		return {
+			slug: request.slug,
+			shareId: request.shareId,
+			trackView: request.trackView === true,
+		};
 	}
 	return request;
 }

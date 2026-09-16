@@ -21,6 +21,9 @@ The GitHub App has read-only access. A share link contains an opaque identifier 
 - Optional source archive downloads
 - Optional releases and release-asset downloads
 - Configurable link expiration and immediate revocation
+- Personal share links in the form `/username/random-code`, using the creator's GitHub username and a cryptographically random code. Revoke and recreate older links to use the new format.
+- Per-link open count, last-viewed time, 7/30-day daily open charts, and separate source ZIP/release download counts without visitor identification
+- Dashboard activity refresh without a full page reload; opens include repeat visits and downloads count successful GitHub handoffs
 - Bot protection on the private repository data endpoint
 - Responsive desktop and mobile interfaces
 - Owner dashboard for creating, copying, configuring, and revoking links

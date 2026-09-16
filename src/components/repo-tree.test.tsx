@@ -55,10 +55,9 @@ describe("RepoTree adapter", () => {
 		render(<RepoTree {...props} />);
 		fireEvent.click(screen.getByRole("button", { name: "Open file" }));
 		expect(testState.prefetch).toHaveBeenCalledWith("src/a.ts");
-		expect(testState.push).toHaveBeenCalledWith(
-			"/o/r/blob/main/src/a.ts?s=s1",
-			{ scroll: false },
-		);
+		expect(testState.push).toHaveBeenCalledWith("/o/s1/blob/main/src/a.ts", {
+			scroll: false,
+		});
 	});
 
 	it("can return to the initial file after navigation", () => {
@@ -69,7 +68,7 @@ describe("RepoTree adapter", () => {
 		expect(testState.model).toBe(model);
 		act(() => model?.getItem("README.md")?.select());
 		expect(testState.push).toHaveBeenLastCalledWith(
-			"/o/r/blob/main/README.md?s=s1",
+			"/o/s1/blob/main/README.md",
 			{ scroll: false },
 		);
 		expect(testState.push).toHaveBeenCalledTimes(2);
@@ -99,7 +98,7 @@ describe("RepoTree adapter", () => {
 		expect(testState.model?.getItem("README.md")).toBeNull();
 		act(() => testState.model?.getItem("new.ts")?.select());
 		expect(testState.push).toHaveBeenLastCalledWith(
-			"/o/r/blob/release/new.ts?s=s2",
+			"/o/s2/blob/release/new.ts",
 			{ scroll: false },
 		);
 	});

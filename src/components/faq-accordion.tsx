@@ -23,9 +23,12 @@ const ITEMS: { q: string; a: React.ReactNode }[] = [
 		q: "Do you track visitors?",
 		a: (
 			<>
-				OneLinkVault uses cookieless Vercel Web Analytics for aggregate page
-				views and traffic sources. It does not use advertising or cross-site
-				tracking. See the <a href="/privacy">privacy policy</a> for details.
+				Link owners can see aggregate open and download counts, daily opens for
+				the last 30 days, and when their link was last opened. OneLinkVault does
+				not store viewer IP addresses or visitor IDs for this feature. It also
+				uses cookieless Vercel Web Analytics and does not use advertising or
+				cross-site tracking. See the <a href="/privacy">privacy policy</a> for
+				details.
 			</>
 		),
 	},

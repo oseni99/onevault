@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { getInstallationOctokit, getInstallationToken } from "@/lib/github-app";
 import { getRepoMeta, listBranches } from "@/lib/github-repo";
-import { resolveShare } from "@/lib/share-store";
+import { recordShareDownload, resolveShare } from "@/lib/share-store";
 
 // Never cache: the URL this hands back is signed and expires within minutes.
 export const dynamic = "force-dynamic";
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
 		return NextResponse.json({ error: "Archive unavailable" }, { status: 502 });
 	}
 
-	if (!location) {
+	if (!location || status < 300 || status >= 400) {
 		// 404 covers both a missing branch and a repository the app can no longer read, which is the same "gone" story for the recipient.
 		return NextResponse.json(
 			{
@@ -92,6 +92,13 @@ export async function GET(request: Request) {
 	}
 
 	const out = NextResponse.redirect(location, 302);
+	after(async () => {
+		try {
+			await recordShareDownload(shareId, "source");
+		} catch (error) {
+			console.error("download tracking failed", error);
+		}
+	});
 	out.headers.set("Cache-Control", "no-store");
 	return out;
 }

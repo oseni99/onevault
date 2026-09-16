@@ -26,6 +26,10 @@ import {
 } from "@/lib/viewer-client-cache";
 import type { ViewerPathPayload, ViewerPayload } from "@/lib/viewer-data";
 
+// A document load counts once per share. Client-side navigation stays within
+// the same visit and must not inflate the total.
+const trackedShares = new Set<string>();
+
 function Notice({ title, detail }: { title: string; detail?: string }) {
 	return (
 		// viewer-shell so the notice resolves the viewer's --gh-* tokens.
@@ -113,21 +117,9 @@ function ViewerShell({
 	);
 }
 
-// Rendered markdown with the repo-relative links repaired. The HTML arrives
-// with the hrefs the author wrote ("LICENSE", "docs/setup.md"); the browser
-// resolves those against the current /owner/repo/blob/ref/... URL, which is
-// the right path but LOSES the ?s= share query — so every relative link died
-// on a "share link required" screen. Same-origin links get the share id
-// appended; external links open in a new tab.
-function RepoHtml({
-	html,
-	className,
-	shareId,
-}: {
-	html: string;
-	className: string;
-	shareId: string;
-}) {
+// Relative markdown links retain the username/code prefix when resolved
+// against the current file URL. External links open in a new tab.
+function RepoHtml({ html, className }: { html: string; className: string }) {
 	const ref = React.useRef<HTMLDivElement>(null);
 
 	// html is a real dependency even though the body never reads it: a new
@@ -154,10 +146,9 @@ function RepoHtml({
 				a.setAttribute("rel", "noopener noreferrer");
 				continue;
 			}
-			if (!url.searchParams.has("s")) url.searchParams.set("s", shareId);
 			a.setAttribute("href", `${url.pathname}${url.search}${url.hash}`);
 		}
-	}, [html, shareId]);
+	}, [html]);
 
 	return (
 		<div
@@ -174,7 +165,7 @@ function ReleasesView({
 }: {
 	payload: Extract<ViewerPayload, { kind: "releases" }>;
 }) {
-	const { owner, repo, shareId, refName } = payload;
+	const { shareUsername: owner, repo, shareId, refName } = payload;
 	return (
 		<ViewerShell fullName={payload.fullName} refName={refName}>
 			<main className="viewer viewer--wide">
@@ -209,7 +200,7 @@ function FileOrDirView({
 	onPrefetchPath: (path: string) => void;
 }) {
 	const {
-		owner,
+		shareUsername: owner,
 		repo,
 		shareId,
 		refName: ref,
@@ -454,7 +445,7 @@ function FileOrDirView({
 							{contents.isBinary ? (
 								<div className="tree__empty">Binary file not shown.</div>
 							) : showPreview && mdHtml ? (
-								<RepoHtml className="readme" html={mdHtml} shareId={shareId} />
+								<RepoHtml className="readme" html={mdHtml} />
 							) : contents.text !== null ? (
 								<PierreFile
 									name={contents.name}
@@ -499,10 +490,10 @@ function pathRequestFor(
 	current: ViewerPayload | null,
 ): Extract<ViewerRequest, { operation: "path" }> | null {
 	if (current?.kind !== "view" || current.fullTree === null) return null;
-	const [owner, repo, viewType, ...location] = slug;
+	const [username, code, viewType, ...location] = slug;
 	if (
-		owner !== current.owner ||
-		repo !== current.repo ||
+		username?.toLowerCase() !== current.shareUsername.toLowerCase() ||
+		code !== shareId ||
 		(viewType !== "blob" && viewType !== "tree")
 	) {
 		return null;
@@ -516,8 +507,8 @@ function pathRequestFor(
 	return {
 		operation: "path",
 		shareId,
-		owner,
-		repo,
+		owner: current.owner,
+		repo: current.repo,
 		ref: current.refName,
 		path,
 	};
@@ -577,11 +568,13 @@ export function ViewerContent({
 
 		(async () => {
 			try {
+				const trackView = !trackedShares.has(shareId);
 				const payload = await loadViewerRequest(
 					pathRequest ?? {
 						operation: "bootstrap",
 						slug: slugRef.current,
 						shareId,
+						trackView,
 					},
 				);
 				if (cancelled) return;
@@ -604,6 +597,9 @@ export function ViewerContent({
 				}
 				if (payload.kind === "view") {
 					rememberViewerRepositoryContext(payload);
+				}
+				if (payload.kind === "view" || payload.kind === "releases") {
+					trackedShares.add(shareId);
 				}
 				setState({ status: "ready", payload });
 			} catch (error) {

@@ -85,6 +85,7 @@ export default async function AppPage({
 	}
 
 	let shares: {
+		shareUsername?: string;
 		id: string;
 		owner: string;
 		repo: string;
@@ -94,12 +95,18 @@ export default async function AppPage({
 		showBranches?: boolean;
 		allowDownload?: boolean;
 		showReleases?: boolean;
+		viewCount: number;
+		lastViewedAt?: number;
+		sourceDownloads: number;
+		releaseDownloads: number;
+		dailyOpens: { date: string; count: number }[];
 	}[] = [];
 	try {
 		const lists = await Promise.all(
 			session.installationIds.map((id) => listSharesForInstallation(id)),
 		);
 		shares = lists.flat().map((s) => ({
+			shareUsername: s.shareUsername,
 			id: s.id,
 			owner: s.owner,
 			repo: s.repo,
@@ -109,6 +116,11 @@ export default async function AppPage({
 			showBranches: s.showBranches,
 			allowDownload: s.allowDownload,
 			showReleases: s.showReleases,
+			viewCount: s.viewCount,
+			lastViewedAt: s.lastViewedAt,
+			sourceDownloads: s.sourceDownloads,
+			releaseDownloads: s.releaseDownloads,
+			dailyOpens: s.dailyOpens,
 		}));
 	} catch {
 		// Non-fatal.
