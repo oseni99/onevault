@@ -2,6 +2,8 @@
 
 OneLinkVault lets you share a private GitHub repository through a revocable, read-only link. Recipients can browse the code without a GitHub account or collaborator invitation.
 
+https://github.com/user-attachments/assets/8a0cf4f0-59a7-42bf-b31a-f5edbe0c472a
+
 ## Changes from the original
 
 - Added personal share URLs, link activity charts, and download counts.
