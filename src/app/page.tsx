@@ -83,11 +83,11 @@ function ProductPreview() {
 						</p>
 						<p>
 							<b>02</b>&nbsp;&nbsp;access:{" "}
-							<span className="code-green">&quot;read-only&quot;</span>,
+							<span className="code-string">&quot;read-only&quot;</span>,
 						</p>
 						<p>
 							<b>03</b>&nbsp;&nbsp;visibility:{" "}
-							<span className="code-green">&quot;unlisted&quot;</span>,
+							<span className="code-string">&quot;unlisted&quot;</span>,
 						</p>
 						<p>
 							<b>04</b>&nbsp;&nbsp;expires:{" "}
@@ -95,7 +95,7 @@ function ProductPreview() {
 						</p>
 						<p>
 							<b>05</b>&nbsp;&nbsp;control:{" "}
-							<span className="code-green">&quot;yours&quot;</span>,
+							<span className="code-string">&quot;yours&quot;</span>,
 						</p>
 						<p>
 							<b>06</b>&#125;;

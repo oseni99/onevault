@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 import { ACCENT } from "@/lib/brand";
 
-// OneLinkVault mark: a compact lock inside the acid-lime brand tile.
+// OneLinkVault mark: a compact lock inside the blue brand tile.
 export const size = { width: 512, height: 512 };
 export const contentType = "image/png";
 
@@ -14,7 +14,7 @@ function Mark({ radius }: { radius: number }) {
 				display: "flex",
 				alignItems: "center",
 				justifyContent: "center",
-				background: "#080a08",
+				background: "#0d1117",
 				borderRadius: radius,
 				position: "relative",
 			}}
@@ -37,7 +37,7 @@ function Mark({ radius }: { radius: number }) {
 						top: 70,
 						width: 128,
 						height: 126,
-						border: "24px solid #080a08",
+						border: "24px solid #0d1117",
 						borderBottom: "0",
 						borderRadius: "70px 70px 0 0",
 					}}
@@ -48,7 +48,7 @@ function Mark({ radius }: { radius: number }) {
 						height: 148,
 						marginTop: 84,
 						borderRadius: 38,
-						background: "#080a08",
+						background: "#0d1117",
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",

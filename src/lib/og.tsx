@@ -3,7 +3,7 @@ import { ACCENT } from "@/lib/brand";
 
 // Shared 1200×630 share card. Satori constraints: flexbox only, no CSS vars
 // (the accent comes from the ACCENT constant; the neutral bg/text are
-// hardcoded to mirror app.css), default font (no custom font asset — Latin
+// hardcoded to mirror global.css), default font (no custom font asset — Latin
 // text only), tiny bundle.
 
 export const size = { width: 1200, height: 630 };
@@ -29,7 +29,7 @@ function VaultMark() {
 					height: 28,
 					marginTop: 10,
 					borderRadius: 7,
-					background: "#080a08",
+					background: "#0d1117",
 					display: "flex",
 					alignItems: "center",
 					justifyContent: "center",
@@ -53,7 +53,7 @@ export function ogImage(title: string, subtitle: string) {
 				flexDirection: "column",
 				justifyContent: "space-between",
 				padding: "76px 80px",
-				background: "#0a0b0e",
+				background: "#0d1117",
 				color: "#f1f2f5",
 				backgroundImage: `radial-gradient(circle at 82% 6%, ${ACCENT}33, transparent 55%)`,
 			}}
